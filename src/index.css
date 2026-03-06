@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-poppins bg-luxury-gray text-luxury-black;
+  }
+}
+
+@layer components {
+  .btn-gold {
+    @apply bg-gold-500 text-black px-6 py-2.5 rounded-lg font-semibold hover:bg-gold-600 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2;
+  }
+  
+  .btn-outline-gold {
+    @apply border-2 border-gold-500 text-gold-600 px-6 py-2 rounded-lg font-semibold hover:bg-gold-500 hover:text-black transition-all duration-300 active:scale-95;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none transition-all duration-200 bg-white;
+  }
+
+  .card-luxury {
+    @apply bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 overflow-hidden;
+  }
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #F1D279 50%, #B8962E 100%);
+}
+
+.gold-text-gradient {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(135deg, #D4AF37 0%, #F1D279 50%, #B8962E 100%);
+}

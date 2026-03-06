@@ -6,6 +6,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const { isAuthenticated, user, loading } = useAuth();
   const location = useLocation();
 
+  // While checking for persistent authentication, show the loader
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
@@ -14,11 +15,14 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     );
   }
 
+  // If no user is logged in, redirect to login page
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // If user role is not allowed for this route, redirect to home or dashboard
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    // Basic redirect to home if unauthorized
     return <Navigate to="/" replace />;
   }
 

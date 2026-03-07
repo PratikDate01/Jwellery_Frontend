@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { motion } from 'framer-motion';
@@ -7,27 +7,21 @@ import { toast } from 'react-hot-toast';
 import Loader from '../components/common/Loader';
 import BackButton from '../components/common/BackButton';
 
+import { useQuery } from '@tanstack/react-query';
+
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
 
-  useEffect(() => {
-    fetchProduct();
-  }, [id]);
-
-  const fetchProduct = async () => {
-    try {
+  const { data: product, isLoading: loading, error } = useQuery({
+    queryKey: ['product', id],
+    queryFn: async () => {
       const res = await api.get(`products/${id}/`);
-      setProduct(res.data);
-    } catch (error) {
-      console.error("Error fetching product", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const addToCart = async () => {
     try {

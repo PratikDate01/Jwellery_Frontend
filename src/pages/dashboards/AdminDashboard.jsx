@@ -47,7 +47,7 @@ const AdminDashboard = () => {
       const res = await api.get('analytics/admin/');
       return res.data;
     },
-    refetchInterval: 10000,
+    staleTime: 30000, // 30 seconds
   });
 
   const { data: products = [], isLoading: isProductsLoading } = useQuery({
@@ -56,7 +56,7 @@ const AdminDashboard = () => {
       const res = await api.get('products/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    refetchInterval: 10000,
+    staleTime: 60000, // 1 minute
   });
 
   const { data: orders = [], isLoading: isOrdersLoading } = useQuery({
@@ -65,7 +65,7 @@ const AdminDashboard = () => {
       const res = await api.get('orders/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    refetchInterval: 10000,
+    staleTime: 30000,
   });
 
   const { data: users = [], isLoading: isUsersLoading } = useQuery({
@@ -74,7 +74,7 @@ const AdminDashboard = () => {
       const res = await api.get('accounts/admin/users/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    refetchInterval: 30000,
+    staleTime: 120000, // 2 minutes
   });
 
   const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({
@@ -83,7 +83,7 @@ const AdminDashboard = () => {
       const res = await api.get('categories/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    refetchInterval: 30000,
+    staleTime: 300000, // 5 minutes
   });
 
   const { data: coupons = [], isLoading: isCouponsLoading } = useQuery({
@@ -92,7 +92,7 @@ const AdminDashboard = () => {
       const res = await api.get('coupons/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    refetchInterval: 30000,
+    staleTime: 300000,
   });
 
   const { data: supplierProducts = [], isLoading: isSupplierProductsLoading } = useQuery({
@@ -101,7 +101,7 @@ const AdminDashboard = () => {
       const res = await api.get('products/supplier-products/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    refetchInterval: 10000,
+    staleTime: 60000,
   });
 
   const { data: purchaseOrders = [], isLoading: isPurchaseOrdersLoading } = useQuery({
@@ -110,7 +110,7 @@ const AdminDashboard = () => {
       const res = await api.get('products/purchase-orders/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    refetchInterval: 10000,
+    staleTime: 60000,
   });
 
   const { data: stockLedger = [], isLoading: isStockLedgerLoading } = useQuery({
@@ -119,7 +119,7 @@ const AdminDashboard = () => {
       const res = await api.get('products/stock-ledger/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    refetchInterval: 30000,
+    staleTime: 120000,
   });
 
   const { data: negotiations = [], isLoading: isNegotiationsLoading } = useQuery({
@@ -128,12 +128,62 @@ const AdminDashboard = () => {
       const res = await api.get('wholesale/negotiations/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    refetchInterval: 10000,
+    staleTime: 30000,
   });
 
   const stats = statsData?.stats || {};
   const recentOrders = statsData?.recent_orders || [];
-  const loading = isStatsLoading || isProductsLoading || isOrdersLoading || isUsersLoading || isCategoriesLoading || isCouponsLoading || isSupplierProductsLoading || isPurchaseOrdersLoading || isStockLedgerLoading || isNegotiationsLoading;
+  
+  // Only show the global loader for critical stats and active tab data
+  const isTabLoading = 
+    (activeTab === 'overview' && isStatsLoading) ||
+    (activeTab === 'products' && isProductsLoading) ||
+    (activeTab === 'orders' && isOrdersLoading) ||
+    (activeTab === 'users' && isUsersLoading) ||
+    (activeTab === 'collections' && isCategoriesLoading) ||
+    (activeTab === 'coupons' && isCouponsLoading) ||
+    (activeTab === 'supplier-products' && isSupplierProductsLoading) ||
+    (activeTab === 'purchase-orders' && isPurchaseOrdersLoading) ||
+    (activeTab === 'stock-ledger' && isStockLedgerLoading) ||
+    (activeTab === 'negotiations' && isNegotiationsLoading);
+    
+  // Added error tracking for dashboards
+  const isCriticalError = 
+    (activeTab === 'overview' && !statsData && !isStatsLoading) ||
+    (activeTab === 'products' && !products.length && !isProductsLoading);
+
+  const loading = isTabLoading && !isCriticalError;
+
+  if (isCriticalError) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-[32px] shadow-xl border border-red-100 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertTriangle size={32} />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Connection Error</h2>
+          <p className="text-slate-500 text-sm mb-8">We're having trouble reaching the luxury servers. Please check your connection and try again.</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-sm shadow-lg hover:bg-gold-600 transition-all"
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-medium text-slate-500">Loading real-time data...</p>
+        </div>
+      </div>
+    );
+  }
 
   const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting: formSubmitting } } = useForm();
 

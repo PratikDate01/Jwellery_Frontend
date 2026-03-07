@@ -12,7 +12,7 @@ const Home = () => {
       const res = await api.get('categories/');
       return res.data.slice(0, 3);
     },
-    refetchInterval: 10000,
+    staleTime: 300000, // 5 minutes
   });
   return (
     <div className="bg-luxury-ivory text-slate-900 overflow-hidden">

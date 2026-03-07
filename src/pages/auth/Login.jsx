@@ -21,7 +21,11 @@ const Login = () => {
     try {
       const user = await login(data.email, data.password);
       toast.success(`Welcome back, ${user.name || 'User'}!`);
-      const from = location.state?.from?.pathname || `/dashboard/${user.role.toLowerCase()}`;
+      
+      let targetPath = `/dashboard/${user.role.toLowerCase()}`;
+      if (user.role === 'CUSTOMER') targetPath = '/';
+      
+      const from = location.state?.from?.pathname || targetPath;
       navigate(from, { replace: true });
     } catch (error) {
       console.error("Login Error Details:", error.response?.data);

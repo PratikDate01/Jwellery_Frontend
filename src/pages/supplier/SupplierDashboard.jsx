@@ -34,16 +34,10 @@ const SupplierDashboard = () => {
   const { data: supplierData, isLoading, error: queryError, refetch } = useQuery({
     queryKey: ['supplier-dashboard'],
     queryFn: async () => {
-      try {
-        const res = await api.get('analytics/supplier/');
-        return res.data;
-      } catch (err) {
-        setError(err.response?.data?.detail || 'Failed to fetch dashboard data');
-        throw err;
-      }
+      const res = await api.get('analytics/supplier/');
+      return res.data;
     },
-    refetchInterval: 10000,
-    retry: 3,
+    staleTime: 30000,
   });
 
   const { data: categories = [] } = useQuery({
@@ -52,6 +46,7 @@ const SupplierDashboard = () => {
       const res = await api.get('categories/');
       return res.data;
     },
+    staleTime: 300000,
   });
 
   const { data: supplyOrders = [], isLoading: isOrdersLoading } = useQuery({
@@ -60,7 +55,7 @@ const SupplierDashboard = () => {
       const res = await api.get('products/purchase-orders/supplier_orders/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    refetchInterval: 10000,
+    staleTime: 60000,
   });
 
   const createProductMutation = useMutation({
@@ -106,7 +101,10 @@ const SupplierDashboard = () => {
 
   const analytics = supplierData?.stats;
   const inventory = supplierData?.inventory || [];
-  const loading = isLoading;
+  
+  // Robust loading state that stops on error
+  const loading = isLoading && !queryError;
+  const hasError = !!queryError;
 
   const handleLogout = () => {
     logout();
@@ -170,6 +168,26 @@ const SupplierDashboard = () => {
     { id: 'reports', name: 'Reports', icon: BarChart3 },
     { id: 'settings', name: 'Settings', icon: Settings },
   ];
+
+  if (hasError) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-[32px] shadow-xl border border-red-100 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle size={32} />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Portal Unavailable</h2>
+          <p className="text-slate-500 text-sm mb-8">We're experiencing technical difficulties connecting to your supplier portal. Please try again in a moment.</p>
+          <button 
+            onClick={() => refetch()}
+            className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-sm shadow-lg hover:bg-blue-700 transition-all"
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

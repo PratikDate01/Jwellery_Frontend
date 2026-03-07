@@ -28,11 +28,19 @@ const ProfileRedirect = () => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
   
+  if (user.role === 'CUSTOMER') return <Navigate to="/" replace />;
+  
   const role = user.role?.toLowerCase();
   return <Navigate to={`/dashboard/${role}`} replace />;
 };
 
 function App() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
     <Router>
       <Suspense fallback={<Loader />}>

@@ -27,16 +27,10 @@ const WholesalerDashboard = () => {
   const { data: wholesalerData, isLoading, error: queryError, refetch } = useQuery({
     queryKey: ['wholesaler-dashboard'],
     queryFn: async () => {
-      try {
-        const res = await api.get('analytics/wholesaler/');
-        return res.data;
-      } catch (err) {
-        setError(err.response?.data?.detail || 'Failed to fetch dashboard data');
-        throw err;
-      }
+      const res = await api.get('analytics/wholesaler/');
+      return res.data;
     },
-    refetchInterval: 10000,
-    retry: 3,
+    staleTime: 30000,
   });
 
   const { data: products = [] } = useQuery({
@@ -45,6 +39,7 @@ const WholesalerDashboard = () => {
       const res = await api.get('products/');
       return res.data;
     },
+    staleTime: 60000,
   });
 
   const createOrderMutation = useMutation({

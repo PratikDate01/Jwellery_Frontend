@@ -22,7 +22,7 @@ const Shop = () => {
       const res = await api.get('products/', { params: filters });
       return res.data;
     },
-    refetchInterval: 10000,
+    staleTime: 60000, // 1 minute
   });
 
   const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({

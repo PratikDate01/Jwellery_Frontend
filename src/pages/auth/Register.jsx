@@ -1,19 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { toast } from 'react-hot-toast';
 import { motion as Motion } from 'framer-motion';
-import { Mail, Lock, User, Phone, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, Phone, ArrowRight, Loader2 } from 'lucide-react';
 import BackButton from '../../components/common/BackButton';
+import { useAuth } from '../../context/AuthContext';
 
 const Register = () => {
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({
     defaultValues: {
       role: 'CUSTOMER'
     }
   });
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const password = watch('password');
   const selectedRole = watch('role');
@@ -25,7 +28,9 @@ const Register = () => {
   ];
 
   const onSubmit = async (data) => {
+    setLoading(true);
     try {
+      // 1. Register the user
       await api.post('accounts/register/', {
         email: data.email,
         name: data.name,
@@ -34,8 +39,16 @@ const Register = () => {
         phone: data.phone,
         role: data.role
       });
-      toast.success('Account created! You can now sign in.');
-      navigate('/login');
+      
+      toast.success('Account created! Logging you in...');
+      
+      // 2. Automatically log the user in
+      const loggedInUser = await login(data.email, data.password);
+      
+      // 3. Redirect to appropriate dashboard
+      const dashboardPath = `/dashboard/${loggedInUser.role.toLowerCase()}`;
+      navigate(dashboardPath, { replace: true });
+      
     } catch (error) {
       console.error("Registration error:", error.response?.data);
       const errorData = error.response?.data;
@@ -43,12 +56,14 @@ const Register = () => {
       
       if (typeof errorData === 'object' && errorData !== null) {
         const messages = Object.values(errorData).flat();
-        if (messages.length > 0) {
+        if (messages.length > 0 && typeof messages[0] === 'string') {
           errorMessage = messages[0];
         }
       }
       
       toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,8 +93,9 @@ const Register = () => {
                   id="name"
                   type="text"
                   autoComplete="name"
+                  disabled={loading}
                   {...register('name', { required: 'Name is required' })}
-                  className="w-full bg-slate-50 border border-slate-100 focus:border-gold-400 focus:bg-white focus:ring-4 focus:ring-gold-50 outline-none pl-14 pr-6 py-4 text-sm rounded-2xl transition-all"
+                  className="w-full bg-slate-50 border border-slate-100 focus:border-gold-400 focus:bg-white focus:ring-4 focus:ring-gold-50 outline-none pl-14 pr-6 py-4 text-sm rounded-2xl transition-all disabled:opacity-50"
                   placeholder="e.g. John Doe"
                 />
               </div>
@@ -94,11 +110,12 @@ const Register = () => {
                   id="email"
                   type="email"
                   autoComplete="email"
+                  disabled={loading}
                   {...register('email', { 
                     required: 'Email is required',
                     pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' }
                   })}
-                  className="w-full bg-slate-50 border border-slate-100 focus:border-gold-400 focus:bg-white focus:ring-4 focus:ring-gold-50 outline-none pl-14 pr-6 py-4 text-sm rounded-2xl transition-all"
+                  className="w-full bg-slate-50 border border-slate-100 focus:border-gold-400 focus:bg-white focus:ring-4 focus:ring-gold-50 outline-none pl-14 pr-6 py-4 text-sm rounded-2xl transition-all disabled:opacity-50"
                   placeholder="name@example.com"
                 />
               </div>
@@ -113,8 +130,9 @@ const Register = () => {
                   id="phone"
                   type="tel"
                   autoComplete="tel"
+                  disabled={loading}
                   {...register('phone', { required: 'Phone is required' })}
-                  className="w-full bg-slate-50 border border-slate-100 focus:border-gold-400 focus:bg-white focus:ring-4 focus:ring-gold-50 outline-none pl-14 pr-6 py-4 text-sm rounded-2xl transition-all"
+                  className="w-full bg-slate-50 border border-slate-100 focus:border-gold-400 focus:bg-white focus:ring-4 focus:ring-gold-50 outline-none pl-14 pr-6 py-4 text-sm rounded-2xl transition-all disabled:opacity-50"
                   placeholder="+91 00000 00000"
                 />
               </div>
@@ -129,11 +147,12 @@ const Register = () => {
                   id="password"
                   type="password"
                   autoComplete="new-password"
+                  disabled={loading}
                   {...register('password', { 
                     required: 'Password is required', 
                     minLength: { value: 8, message: 'Min 8 characters' } 
                   })}
-                  className="w-full bg-slate-50 border border-slate-100 focus:border-gold-400 focus:bg-white focus:ring-4 focus:ring-gold-50 outline-none pl-14 pr-6 py-4 text-sm rounded-2xl transition-all"
+                  className="w-full bg-slate-50 border border-slate-100 focus:border-gold-400 focus:bg-white focus:ring-4 focus:ring-gold-50 outline-none pl-14 pr-6 py-4 text-sm rounded-2xl transition-all disabled:opacity-50"
                   placeholder="••••••••"
                 />
               </div>
@@ -148,11 +167,12 @@ const Register = () => {
                   id="password_confirm"
                   type="password"
                   autoComplete="new-password"
+                  disabled={loading}
                   {...register('password_confirm', { 
                     required: 'Please confirm your password',
                     validate: (value) => value === password || 'Passwords do not match'
                   })}
-                  className="w-full bg-slate-50 border border-slate-100 focus:border-gold-400 focus:bg-white focus:ring-4 focus:ring-gold-50 outline-none pl-14 pr-6 py-4 text-sm rounded-2xl transition-all"
+                  className="w-full bg-slate-50 border border-slate-100 focus:border-gold-400 focus:bg-white focus:ring-4 focus:ring-gold-50 outline-none pl-14 pr-6 py-4 text-sm rounded-2xl transition-all disabled:opacity-50"
                   placeholder="••••••••"
                 />
               </div>
@@ -171,10 +191,12 @@ const Register = () => {
                     ${selectedRole === role.id 
                       ? 'border-gold-500 bg-gold-50 shadow-lg shadow-gold-500/10' 
                       : 'border-slate-100 bg-slate-50 hover:border-slate-200'}
+                    ${loading ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
                 >
                   <input
                     type="radio"
+                    disabled={loading}
                     {...register('role')}
                     value={role.id}
                     className="sr-only"
@@ -191,12 +213,21 @@ const Register = () => {
 
           <div className="pt-6">
             <button
-              disabled={isSubmitting}
+              disabled={loading}
               type="submit"
               className="w-full bg-slate-900 text-white font-bold py-5 text-[11px] uppercase tracking-[0.2em] hover:bg-gold-600 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 rounded-2xl shadow-xl shadow-slate-900/10"
             >
-              {isSubmitting ? 'Creating account...' : 'Create Account'}
-              <ArrowRight size={18} />
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <span>Create Account</span>
+                  <ArrowRight size={18} />
+                </>
+              )}
             </button>
           </div>
         </form>

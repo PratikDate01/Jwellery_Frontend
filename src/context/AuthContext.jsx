@@ -25,26 +25,30 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // Attempt to fetch profile. Our api instance handles headers and silent refresh
       const response = await api.get('accounts/profile/');
       if (response.data) {
         setUser(response.data);
       }
     } catch (error) {
       console.error('Auth initialization error:', error);
-      // Tokens are cleared by api interceptor on failure, so just clear state
+      // If 401, tokens are already cleared by api.js interceptor
       setUser(null);
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
     } finally {
-      // Ensure loading is always stopped
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     initializeAuth();
-  }, [initializeAuth]);
+
+    // Listen for logout events from the axios interceptor
+    const handleLogout = () => {
+      logout();
+    };
+    
+    window.addEventListener('auth-logout', handleLogout);
+    return () => window.removeEventListener('auth-logout', handleLogout);
+  }, [initializeAuth, logout]);
 
   const login = async (email, password) => {
     try {

@@ -4,8 +4,19 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://jewellery-backend-
 
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
-  timeout: 30000,
+  timeout: 60000, // Increased to 60s for Render cold starts
 });
+
+// Health check to wake up the backend
+export const warmupBackend = async () => {
+  try {
+    await axios.get(`${API_BASE_URL}/api/health/`, { timeout: 10000 });
+    return true;
+  } catch (error) {
+    console.warn('Backend warmup failed or timed out', error);
+    return false;
+  }
+};
 
 // Request interceptor: Attach JWT token to every request if available
 api.interceptors.request.use(

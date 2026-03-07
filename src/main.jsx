@@ -10,21 +10,26 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 5 * 60 * 1000, 
+      gcTime: 10 * 60 * 1000, 
       retry: (failureCount, error) => {
-        // Don't retry for certain errors
+        // Stop retrying on standard auth errors
         if (error?.response?.status === 401 || error?.response?.status === 403 || error?.response?.status === 404) {
           return false;
         }
-        // Max 2 retries
-        return failureCount < 2;
+        
+        // Retry for timeouts or network errors (potentially cold starts)
+        // Max 3 retries for queries to give backend ~1.5-2 mins to wake up
+        return failureCount < 3;
       },
+      // Give the backend time to wake up between retries
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false, 
       refetchOnReconnect: true,
+      throwOnError: false, // Don't crash the whole app on query error
     },
     mutations: {
-      retry: 0, // No retries for mutations (e.g. login, post) to prevent duplicate actions or loops
+      retry: 0, // No retries for destructive actions (POST/PUT/DELETE)
     }
   },
 });

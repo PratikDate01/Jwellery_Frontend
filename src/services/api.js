@@ -8,13 +8,45 @@ const api = axios.create({
 });
 
 // Health check to wake up the backend
+let warmupPromise = null;
+
 export const warmupBackend = async () => {
+  // Return existing promise if warmup is already in progress
+  if (warmupPromise) return warmupPromise;
+
+  warmupPromise = (async () => {
+    console.log('Waking up backend service...');
+    try {
+      // 60s timeout for cold starts on Render
+      await axios.get(`${API_BASE_URL}/api/health/`, { timeout: 60000 });
+      console.log('Backend service is awake and healthy.');
+      return true;
+    } catch (error) {
+      if (error.code === 'ECONNABORTED') {
+        console.warn('Backend warmup timed out (Render cold start?)');
+      } else {
+        console.warn('Backend warmup failed', error.message);
+      }
+      return false;
+    } finally {
+      // Clear promise after 30s so it can be retried if needed
+      setTimeout(() => { warmupPromise = null; }, 30000);
+    }
+  })();
+
+  return warmupPromise;
+};
+
+/**
+ * Safe request wrapper to prevent infinite loaders and handle errors gracefully
+ */
+export const safeRequest = async (requestFn, fallbackValue = null) => {
   try {
-    await axios.get(`${API_BASE_URL}/api/health/`, { timeout: 10000 });
-    return true;
+    const response = await requestFn();
+    return response.data;
   } catch (error) {
-    console.warn('Backend warmup failed or timed out', error);
-    return false;
+    console.error('API Request failed:', error);
+    return fallbackValue;
   }
 };
 

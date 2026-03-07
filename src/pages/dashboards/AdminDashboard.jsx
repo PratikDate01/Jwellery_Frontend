@@ -147,6 +147,8 @@ const AdminDashboard = () => {
     (activeTab === 'stock-ledger' && isStockLedgerLoading) ||
     (activeTab === 'negotiations' && isNegotiationsLoading);
     
+  const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting: formSubmitting } } = useForm();
+
   // Added error tracking for dashboards
   const isCriticalError = 
     (activeTab === 'overview' && !statsData && !isStatsLoading) ||
@@ -184,8 +186,6 @@ const AdminDashboard = () => {
       </div>
     );
   }
-
-  const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting: formSubmitting } } = useForm();
 
   const onProductSubmit = async (data) => {
     try {
@@ -526,17 +526,6 @@ const AdminDashboard = () => {
     { id: 'analytics', name: 'Reports', icon: BarChart3 },
     { id: 'settings', name: 'Settings', icon: Settings },
   ];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm font-medium text-slate-500">Loading real-time data...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] font-sans">

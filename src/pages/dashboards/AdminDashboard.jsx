@@ -40,23 +40,25 @@ const AdminDashboard = () => {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
 
-  // Queries for real-time data
-  const { data: statsData, isLoading: isStatsLoading } = useQuery({
-    queryKey: ['admin-stats'],
+  // Main dashboard data (Aggregated Overview)
+  const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
+    queryKey: ['admin-dashboard-overview'],
     queryFn: async () => {
-      const res = await api.get('analytics/admin/');
+      const res = await api.get('analytics/dashboard/');
       return res.data;
     },
-    staleTime: 30000, // 30 seconds
+    staleTime: 60000, // 1 minute
   });
 
+  // Tab-specific queries - only run when tab is active (enabled: activeTab === '...')
   const { data: products = [], isLoading: isProductsLoading } = useQuery({
     queryKey: ['admin-products'],
     queryFn: async () => {
       const res = await api.get('products/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    staleTime: 60000, // 1 minute
+    enabled: activeTab === 'products',
+    staleTime: 60000,
   });
 
   const { data: orders = [], isLoading: isOrdersLoading } = useQuery({
@@ -65,7 +67,8 @@ const AdminDashboard = () => {
       const res = await api.get('orders/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    staleTime: 30000,
+    enabled: activeTab === 'orders',
+    staleTime: 60000,
   });
 
   const { data: users = [], isLoading: isUsersLoading } = useQuery({
@@ -74,7 +77,8 @@ const AdminDashboard = () => {
       const res = await api.get('accounts/admin/users/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    staleTime: 120000, // 2 minutes
+    enabled: activeTab === 'users',
+    staleTime: 120000,
   });
 
   const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({
@@ -83,7 +87,8 @@ const AdminDashboard = () => {
       const res = await api.get('categories/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    staleTime: 300000, // 5 minutes
+    enabled: activeTab === 'collections',
+    staleTime: 300000,
   });
 
   const { data: coupons = [], isLoading: isCouponsLoading } = useQuery({
@@ -92,6 +97,7 @@ const AdminDashboard = () => {
       const res = await api.get('coupons/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
+    enabled: activeTab === 'coupons',
     staleTime: 300000,
   });
 
@@ -101,6 +107,7 @@ const AdminDashboard = () => {
       const res = await api.get('products/supplier-products/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
+    enabled: activeTab === 'supplier-products',
     staleTime: 60000,
   });
 
@@ -110,6 +117,7 @@ const AdminDashboard = () => {
       const res = await api.get('products/purchase-orders/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
+    enabled: activeTab === 'purchase-orders',
     staleTime: 60000,
   });
 
@@ -119,6 +127,7 @@ const AdminDashboard = () => {
       const res = await api.get('products/stock-ledger/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
+    enabled: activeTab === 'stock-ledger',
     staleTime: 120000,
   });
 
@@ -128,15 +137,17 @@ const AdminDashboard = () => {
       const res = await api.get('wholesale/negotiations/');
       return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
-    staleTime: 30000,
+    enabled: activeTab === 'negotiations',
+    staleTime: 60000,
   });
 
-  const stats = statsData?.stats || {};
-  const recentOrders = statsData?.recent_orders || [];
+  const stats = dashboardData?.stats || {};
+  const recentOrders = dashboardData?.recent_orders || [];
+  const lowStockProducts = dashboardData?.low_stock || [];
   
   // Only show the global loader for critical stats and active tab data
   const isTabLoading = 
-    (activeTab === 'overview' && isStatsLoading) ||
+    (activeTab === 'overview' && isDashboardLoading) ||
     (activeTab === 'products' && isProductsLoading) ||
     (activeTab === 'orders' && isOrdersLoading) ||
     (activeTab === 'users' && isUsersLoading) ||
@@ -151,8 +162,7 @@ const AdminDashboard = () => {
 
   // Added error tracking for dashboards
   const isCriticalError = 
-    (activeTab === 'overview' && !statsData && !isStatsLoading) ||
-    (activeTab === 'products' && !products.length && !isProductsLoading);
+    (activeTab === 'overview' && !dashboardData && !isDashboardLoading);
 
   const loading = isTabLoading && !isCriticalError;
 

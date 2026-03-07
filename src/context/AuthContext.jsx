@@ -21,23 +21,16 @@ export const AuthProvider = ({ children }) => {
     const accessToken = localStorage.getItem('access_token');
     
     // 1. Kick off the backend warmup but DON'T await it yet. 
-    // This starts the process immediately while we check other logic.
-    const warmupPromise = warmupBackend();
+    warmupBackend();
 
     if (!accessToken) {
-      // Still wait for warmup to finish in background but resolve loading
       setLoading(false);
       return;
     }
 
     try {
-      // 2. Wait for the warmup to finish before we attempt profile fetch
-      // This ensures the backend is actually awake for the core auth check.
-      await warmupPromise;
-
-      const response = await api.get('accounts/profile/', {
-        timeout: 90000, // Profile check specifically gets a high timeout
-      });
+      // 2. Fetch profile - axios timeout (120s) handles Render cold start
+      const response = await api.get('accounts/profile/');
 
       if (response.data) {
         setUser(response.data);

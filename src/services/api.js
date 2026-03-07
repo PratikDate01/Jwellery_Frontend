@@ -4,6 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api/`,
+  timeout: 15000, // 15 seconds timeout
 });
 
 // Request interceptor: Attach JWT token to every request if available
@@ -11,7 +12,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
     
-    if (token) {
+    if (token && !config.url.includes('accounts/login/') && !config.url.includes('accounts/register/')) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -33,11 +34,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If 401 error, not already retried, and NOT a refresh token request
+    // If 401 error, not already retried, and NOT an auth request
     if (
       error.response?.status === 401 && 
       !originalRequest._retry && 
-      !originalRequest.url.includes('accounts/token/refresh/')
+      !originalRequest.url.includes('accounts/token/refresh/') &&
+      !originalRequest.url.includes('accounts/login/') &&
+      !originalRequest.url.includes('accounts/register/')
     ) {
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem('refresh_token');

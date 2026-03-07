@@ -17,12 +17,12 @@ const Wishlist = () => {
       const res = await api.get('wishlist/');
       return res.data;
     },
-    refetchInterval: 5000,
+    refetchInterval: 10000,
   });
 
   const removeFromWishlistMutation = useMutation({
     mutationFn: async (id) => {
-      await api.delete(`wishlist/remove/${id}/`);
+      await api.post(`wishlist/remove/`, { product_id: id });
     },
     onSuccess: () => {
       toast.success('Removed from your collection');
@@ -36,7 +36,7 @@ const Wishlist = () => {
   const moveToCartMutation = useMutation({
     mutationFn: async (id) => {
       await api.post('cart/add_item/', { product_id: id, quantity: 1 });
-      await api.delete(`wishlist/remove/${id}/`);
+      await api.post(`wishlist/remove/`, { product_id: id });
     },
     onSuccess: () => {
       toast.success('Moved to your collection');
@@ -48,7 +48,7 @@ const Wishlist = () => {
     }
   });
 
-  const items = wishlistData?.products || [];
+  const items = wishlistData?.items || [];
 
   const removeFromWishlist = (id) => {
     removeFromWishlistMutation.mutate(id);
@@ -85,13 +85,13 @@ const Wishlist = () => {
                 >
                   <div className="aspect-[4/5] bg-slate-50 rounded-[40px] overflow-hidden mb-6 shadow-xl shadow-slate-200/50 group-hover:shadow-2xl transition-all">
                     <img 
-                      src={item.images?.[0]?.image || "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=2070"} 
-                      alt={item.name} 
+                      src={item.product_details?.images?.[0]?.image || "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=2070"} 
+                      alt={item.product_details?.name} 
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute top-6 right-6 flex flex-col gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-y-4 group-hover:translate-y-0">
                       <button 
-                        onClick={() => removeFromWishlist(item.id)}
+                        onClick={() => removeFromWishlist(item.product_details?.id)}
                         className="w-12 h-12 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:bg-red-500 hover:text-white transition-all"
                       >
                         <Trash2 size={20} />
@@ -100,12 +100,12 @@ const Wishlist = () => {
                   </div>
                   
                   <div className="px-4">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">{item.category_name}</p>
-                    <h3 className="text-lg font-serif text-slate-900 mb-2">{item.name}</h3>
-                    <p className="text-lg font-light text-slate-900 mb-6">₹{Number(item.price).toLocaleString('en-IN')}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">{item.product_details?.category_name}</p>
+                    <h3 className="text-lg font-serif text-slate-900 mb-2">{item.product_details?.name}</h3>
+                    <p className="text-lg font-light text-slate-900 mb-6">₹{Number(item.product_details?.price).toLocaleString('en-IN')}</p>
                     
                     <button 
-                      onClick={() => moveToCart(item.id)}
+                      onClick={() => moveToCart(item.product_details?.id)}
                       className="w-full flex items-center justify-center gap-3 bg-slate-900 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-gold-600 transition-all"
                     >
                       <ShoppingBag size={16} /> Add to Collection

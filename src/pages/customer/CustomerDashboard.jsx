@@ -78,7 +78,7 @@ const CustomerDashboard = () => {
 
   const removeFromWishlistMutation = useMutation({
     mutationFn: async (productId) => {
-      await api.delete(`wishlist/remove/${productId}/`);
+      await api.post(`wishlist/remove/`, { product_id: productId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['wishlist']);
@@ -118,7 +118,7 @@ const CustomerDashboard = () => {
              </div>
              <div className="text-center px-6 py-2 bg-slate-50 rounded-2xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-400 uppercase">Wishlist</p>
-                <p className="text-lg font-bold text-pink-600">{wishlist?.products?.length || 0}</p>
+                <p className="text-lg font-bold text-pink-600">{wishlist?.items?.length || 0}</p>
              </div>
           </div>
         </div>
@@ -489,32 +489,41 @@ const CustomerDashboard = () => {
                 
                 {isWishlistLoading ? (
                   <div className="flex justify-center py-20">
-                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-4 border-pink-600 border-t-transparent rounded-full animate-spin"></div>
                   </div>
-                ) : wishlist?.products?.length > 0 ? (
+                ) : wishlist?.items?.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {wishlist.products.map((product) => (
-                      <div key={product.id} className="group relative bg-slate-50 rounded-2xl p-4 border border-slate-100 hover:border-pink-200 transition-all">
-                        <div className="flex gap-4">
-                          <div className="w-24 h-24 bg-white rounded-xl border border-slate-100 overflow-hidden shrink-0">
-                            {product.images?.[0]?.image && (
-                              <img src={product.images[0].image} alt={product.name} className="w-full h-full object-cover" />
-                            )}
-                          </div>
-                          <div className="flex-grow flex flex-col justify-between">
-                            <div>
-                              <p className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{product.name}</p>
-                              <p className="text-xs text-slate-500">₹{parseFloat(product.retail_price).toLocaleString('en-IN')}</p>
-                            </div>
-                            <div className="flex gap-2">
-                               <Link to={`/product/${product.id}`} className="text-[10px] font-bold text-blue-600 hover:underline uppercase tracking-wider">View Product</Link>
-                               <button 
-                                 onClick={() => removeFromWishlistMutation.mutate(product.id)}
-                                 className="text-[10px] font-bold text-slate-400 hover:text-red-500 uppercase tracking-wider"
-                               >
-                                 Remove
-                               </button>
-                            </div>
+                    {wishlist.items.map((item) => (
+                      <div key={item.id} className="group relative bg-slate-50/50 border border-slate-100 p-6 rounded-3xl flex gap-6 hover:border-pink-200 transition-all">
+                        <div className="w-24 h-24 bg-white rounded-2xl border border-slate-100 overflow-hidden shrink-0">
+                          <img 
+                            src={item.product_details?.images?.[0]?.image || "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=2070"} 
+                            alt={item.product_details?.name} 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                          />
+                        </div>
+                        <div className="flex-grow min-w-0">
+                          <h3 className="text-sm font-bold text-slate-900 truncate mb-1">{item.product_details?.name}</h3>
+                          <p className="text-xs text-pink-600 font-bold mb-4">₹{Number(item.product_details?.price).toLocaleString('en-IN')}</p>
+                          <div className="flex gap-3">
+                            <button 
+                              onClick={() => {
+                                api.post('cart/add_item/', { product_id: item.product_details?.id, quantity: 1 })
+                                  .then(() => {
+                                    toast.success('Added to collection');
+                                    removeFromWishlistMutation.mutate(item.product_details?.id);
+                                  });
+                              }}
+                              className="text-[10px] font-bold uppercase tracking-widest bg-slate-900 text-white px-4 py-2 rounded-xl hover:bg-blue-600 transition-all"
+                            >
+                              Add To Cart
+                            </button>
+                            <button 
+                              onClick={() => removeFromWishlistMutation.mutate(item.product_details?.id)}
+                              className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                            >
+                              <Trash2 size={14} />
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -524,7 +533,7 @@ const CustomerDashboard = () => {
                   <div className="text-center py-24">
                     <Heart size={48} className="mx-auto text-slate-200 mb-4" />
                     <p className="text-slate-500 font-medium">Your wishlist is empty.</p>
-                    <Link to="/shop" className="text-sm font-bold text-blue-600 hover:underline mt-2 block">Go to Shop</Link>
+                    <Link to="/shop" className="inline-block mt-6 text-sm font-bold text-blue-600 hover:underline">Explore Products</Link>
                   </div>
                 )}
               </div>

@@ -28,26 +28,30 @@ const Login = () => {
       const from = location.state?.from?.pathname || targetPath;
       navigate(from, { replace: true });
     } catch (error) {
-      console.error("Login Error Details:", error.response?.data);
+      console.error("Login Error Details:", error.response?.data || error.message);
       
       let message = 'Invalid email or password. Please try again.';
-      const errorData = error.response?.data;
-
-      if (errorData) {
-        if (errorData.message) {
-          message = errorData.message;
-        } else if (errorData.detail) {
-          message = errorData.detail;
-        } else if (typeof errorData === 'object') {
-          const messages = Object.values(errorData).flat();
-          if (messages.length > 0 && typeof messages[0] === 'string') {
-            message = messages[0];
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        message = 'The server is taking a while to wake up. Please try again in a few moments.';
+      } else {
+        const errorData = error.response?.data;
+        if (errorData) {
+          if (errorData.message) {
+            message = errorData.message;
+          } else if (errorData.detail) {
+            message = errorData.detail;
+          } else if (typeof errorData === 'object') {
+            const messages = Object.values(errorData).flat();
+            if (messages.length > 0 && typeof messages[0] === 'string') {
+              message = messages[0];
+            }
           }
         }
       }
       
       setBackendError(message);
-      toast.error(message, { duration: 4000 });
+      toast.error(message, { duration: 6000 });
     } finally {
       setLoading(false);
     }

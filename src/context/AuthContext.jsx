@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
       await warmupPromise;
 
       const response = await api.get('accounts/profile/', {
-        timeout: 45000, // Profile check specifically gets a high timeout
+        timeout: 90000, // Profile check specifically gets a high timeout
       });
 
       if (response.data) {
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
       const warmupPromise = warmupBackend();
 
       const response = await api.post('accounts/login/', { email, password }, {
-        timeout: 60000, // Increased to 60s for cold starts
+        timeout: 120000, // Increased to 120s for cold starts
       });
       
       const { access, refresh, user: userData } = response.data;

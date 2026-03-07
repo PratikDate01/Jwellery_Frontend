@@ -4,7 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://jewellery-backend-
 
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
-  timeout: 60000, // Increased to 60s for Render cold starts
+  timeout: 120000, // Increased to 120s for Render cold starts
 });
 
 // Health check to wake up the backend
@@ -17,12 +17,12 @@ export const warmupBackend = async () => {
   warmupPromise = (async () => {
     console.log('Waking up backend service...');
     try {
-      // 60s timeout for cold starts on Render
-      await axios.get(`${API_BASE_URL}/api/health/`, { timeout: 60000 });
+      // 120s timeout for cold starts on Render
+      await axios.get(`${API_BASE_URL}/api/health/`, { timeout: 120000 });
       console.log('Backend service is awake and healthy.');
       return true;
     } catch (error) {
-      if (error.code === 'ECONNABORTED') {
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
         console.warn('Backend warmup timed out (Render cold start?)');
       } else {
         console.warn('Backend warmup failed', error.message);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import api from '../../services/api';
 import { 
   LayoutDashboard, Package, ShoppingCart, 
@@ -14,7 +14,6 @@ import { useAuth } from '../../context/AuthContext';
 const WholesalerDashboard = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
-  const [error, setError] = useState(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [orderFormData, setOrderFormData] = useState({
     product: '',
@@ -24,7 +23,7 @@ const WholesalerDashboard = () => {
   });
   const navigate = useNavigate();
 
-  const { data: wholesalerData, isLoading, error: queryError, refetch } = useQuery({
+  const { data: wholesalerData, isLoading, refetch } = useQuery({
     queryKey: ['wholesaler-dashboard'],
     queryFn: async () => {
       const res = await api.get('analytics/dashboard/');
@@ -189,16 +188,6 @@ const WholesalerDashboard = () => {
             </div>
           </div>
         </header>
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
-            <AlertCircle className="text-red-600 flex-shrink-0" size={20} />
-            <div>
-              <p className="font-bold text-red-900">Error</p>
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          </div>
-        )}
 
         {activeTab === 'overview' && (
           <div className="space-y-8">

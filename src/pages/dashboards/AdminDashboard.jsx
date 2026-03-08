@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 
 const AdminDashboard = () => {
@@ -20,6 +20,7 @@ const AdminDashboard = () => {
   const { user, logout } = useAuth();
 
   const [activeTab, setActiveTab] = useState('overview');
+  const [isSettingsSaving, setIsSettingsSaving] = useState(false);
   
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -1201,15 +1202,16 @@ const AdminDashboard = () => {
               </div>
               <button 
                 onClick={() => {
-                  setLoading(true);
+                  setIsSettingsSaving(true);
                   setTimeout(() => {
-                    setLoading(false);
+                    setIsSettingsSaving(false);
                     toast.success("Settings saved successfully");
                   }, 800);
                 }}
-                className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors active:scale-[0.98]"
+                disabled={isSettingsSaving}
+                className={`w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-sm transition-colors active:scale-[0.98] ${isSettingsSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-slate-800'}`}
               >
-                Save All Changes
+                {isSettingsSaving ? 'Saving...' : 'Save All Changes'}
               </button>
             </div>
           </div>

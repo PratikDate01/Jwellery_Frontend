@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
+import toast from 'react-hot-toast';
 import { 
   Package, 
   Heart, 
@@ -28,6 +29,11 @@ const CustomerDashboard = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('orders');
   
+  const memberSince = useMemo(() => {
+    const d = user?.date_joined ? new Date(user.date_joined) : new Date();
+    return d.getFullYear();
+  }, []); // Only compute once on mount or when user changes if needed
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -108,7 +114,7 @@ const CustomerDashboard = () => {
           </div>
           <div className="text-center md:text-left flex-grow">
             <h1 className="text-2xl font-bold text-slate-900 mb-1">Welcome, {user?.name || 'Customer'}</h1>
-            <p className="text-slate-500 text-sm">Member since {new Date(user?.date_joined || Date.now()).getFullYear()}</p>
+            <p className="text-slate-500 text-sm">Member since {memberSince}</p>
           </div>
           <div className="flex gap-4">
              <div className="text-center px-6 py-2 bg-slate-50 rounded-2xl border border-slate-100">

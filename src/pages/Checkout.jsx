@@ -12,43 +12,39 @@ const Checkout = () => {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [orderComplete, setOrderComplete] = useState(false);
-  const [orderId, setOrderId] = useState(null);
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm();
 
   useEffect(() => {
-    fetchCart();
-  }, []);
-
-  const fetchCart = async () => {
-    try {
-      const res = await api.get('cart/current/');
-      const cartData = res.data;
-      const items = Array.isArray(cartData.items) ? cartData.items : [];
-      
-      if (items.length === 0) {
+    const fetchCart = async () => {
+      try {
+        const res = await api.get('cart/current/');
+        const cartData = res.data;
+        const items = Array.isArray(cartData.items) ? cartData.items : [];
+        
+        if (items.length === 0) {
+          navigate('/cart');
+          return;
+        }
+        setCart(cartData);
+      } catch (err) {
+        console.error("Error fetching cart", err);
         navigate('/cart');
-        return;
+      } finally {
+        setLoading(false);
       }
-      setCart(cartData);
-    } catch (error) {
-      console.error("Error fetching cart", error);
-      navigate('/cart');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchCart();
+  }, [navigate]);
 
   const onSubmit = async (data) => {
     setIsProcessing(true);
     try {
       const response = await api.post('orders/', data);
-      setOrderId(response.data.id);
-      // setOrderComplete(true); // Remove this
       toast.success("Order registered. Proceeding to payment...");
       navigate(`/payment/${response.data.id}`); // Redirect to payment page
-    } catch (error) {
+    } catch (err) {
       toast.error("Failed to place order. Please try again.");
     } finally {
       setIsProcessing(false);
@@ -56,38 +52,6 @@ const Checkout = () => {
   };
 
   if (loading) return <Loader />;
-
-  if (orderComplete) return (
-    <div className="min-h-screen pt-32 bg-[#FBF9F6] flex items-center justify-center px-6">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="max-w-lg w-full bg-white rounded-[60px] p-12 md:p-16 text-center shadow-2xl shadow-slate-200/50 border border-slate-100"
-      >
-        <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-10 text-green-500">
-          <CheckCircle2 size={48} />
-        </div>
-        <h1 className="text-4xl font-serif text-slate-900 mb-6">Masterpiece Secured.</h1>
-        <p className="text-slate-500 mb-10 leading-relaxed uppercase tracking-widest text-xs">
-          Your order #{orderId} has been successfully registered. You will receive a confirmation email shortly.
-        </p>
-        <div className="space-y-4">
-          <button 
-            onClick={() => navigate('/dashboard/customer')}
-            className="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-gold-600 transition-all shadow-xl shadow-slate-900/10"
-          >
-            Track Order Progress
-          </button>
-          <button 
-            onClick={() => navigate('/shop')}
-            className="w-full border border-slate-200 text-slate-900 py-5 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all"
-          >
-            Continue Discovery
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  );
 
   const cartItems = Array.isArray(cart?.items) ? cart.items : [];
   const subtotal = cart?.total_price || cartItems.reduce((acc, item) => acc + (parseFloat(item.product_details?.price || 0) * item.quantity), 0);

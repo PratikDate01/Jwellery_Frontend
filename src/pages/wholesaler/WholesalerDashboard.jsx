@@ -27,10 +27,11 @@ const WholesalerDashboard = () => {
   const { data: wholesalerData, isLoading, error: queryError, refetch } = useQuery({
     queryKey: ['wholesaler-dashboard'],
     queryFn: async () => {
-      const res = await api.get('analytics/wholesaler/');
+      const res = await api.get('analytics/dashboard/');
       return res.data;
     },
-    staleTime: 30000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   const { data: products = [] } = useQuery({

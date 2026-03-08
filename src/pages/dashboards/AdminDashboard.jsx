@@ -47,7 +47,8 @@ const AdminDashboard = () => {
       const res = await api.get('analytics/dashboard/');
       return res.data;
     },
-    staleTime: 60000, // 1 minute
+    staleTime: 5 * 60 * 1000, // 5 minutes - dashboard stats don't need to be live every second
+    gcTime: 10 * 60 * 1000,
   });
 
   // Tab-specific queries - only run when tab is active (enabled: activeTab === '...')

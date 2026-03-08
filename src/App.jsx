@@ -35,12 +35,6 @@ const ProfileRedirect = () => {
 };
 
 function App() {
-  const { loading } = useAuth();
-
-  if (loading) {
-    return <Loader />;
-  }
-
   return (
     <Router>
       <Suspense fallback={<Loader />}>

@@ -16,23 +16,29 @@ export const warmupBackend = async () => {
 
   warmupPromise = (async () => {
     console.log('Waking up backend service...');
-    try {
-      // 120s timeout for cold starts on Render
-      await axios.get(`${API_BASE_URL}/api/health/`, { timeout: 120000 });
-      console.log('Backend service is awake and healthy.');
-      return true;
-    } catch (error) {
-      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        console.warn('Backend warmup timed out (Render cold start?)');
-      } else {
-        console.warn('Backend warmup failed', error.message);
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+      try {
+        // Use a shorter timeout for individual attempts to cycle through them
+        await axios.get(`${API_BASE_URL}/api/health/`, { timeout: 30000 });
+        console.log('Backend service is awake and healthy.');
+        return true;
+      } catch (error) {
+        attempts++;
+        console.warn(`Warmup attempt ${attempts} failed: ${error.message}`);
+        if (attempts < maxAttempts) {
+          // Wait 2 seconds before retry
+          await new Promise(r => setTimeout(r, 2000));
+        }
       }
-      return false;
-    } finally {
-      // Clear promise after 30s so it can be retried if needed
-      setTimeout(() => { warmupPromise = null; }, 30000);
     }
+    return false;
   })();
+
+  // Clear promise after 60s so it can be retried if needed
+  setTimeout(() => { warmupPromise = null; }, 60000);
 
   return warmupPromise;
 };

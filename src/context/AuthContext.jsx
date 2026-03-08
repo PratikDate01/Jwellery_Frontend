@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
   const initializeAuth = useCallback(async () => {
     const accessToken = localStorage.getItem('access_token');
     
-    // 1. Kick off the backend warmup but DON'T await it yet. 
+    // Kick off the backend warmup in parallel
     warmupBackend();
 
     if (!accessToken) {
@@ -29,23 +29,32 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // 2. Fetch profile - axios timeout (120s) handles Render cold start
-      const response = await api.get('accounts/profile/');
+      // Set a timeout for the profile fetch so it doesn't block forever
+      // If it takes more than 2 seconds, we proceed as "logged in" but maybe partial data
+      // The ProtectedRoute or subsequent queries will handle the rest
+      const profilePromise = api.get('accounts/profile/');
+      
+      // Wait for profile with a reasonable timeout for UI responsiveness
+      const response = await Promise.race([
+        profilePromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+      ]);
 
       if (response.data) {
         setUser(response.data);
         setError(null);
       }
     } catch (err) {
-      console.error('Auth initialization error:', err);
-      // Don't set error message for initial profile fetch failures
-      // unless it's a critical error beyond just 401/timeout
-      if (err.response?.status !== 401) {
-        setError('Connection issues. Backend might be warming up.');
+      console.error('Auth initialization info:', err.message);
+      // If it's just a timeout, we keep loading as true or false?
+      // If we have a token, we assume authenticated for now to show the UI
+      if (accessToken) {
+        // We have a token but profile fetch failed/timed out
+        // Just set loading to false so the user can see the page
+        // Subsequent API calls will either work or trigger a 401
+        console.log('Proceeding with cached token despite profile fetch delay');
       }
-      setUser(null);
     } finally {
-      // ALWAYS resolve loading state to prevent infinite loader
       setLoading(false);
     }
   }, []);

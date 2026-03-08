@@ -43,25 +43,24 @@ const CustomerDashboard = () => {
     address: user?.address || '',
   });
 
-  const { data: orders, isLoading: isOrdersLoading } = useQuery({
-    queryKey: ['my-orders'],
+  const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
+    queryKey: ['customer-dashboard'],
     queryFn: async () => {
-      const response = await api.get('orders/my-orders/');
+      const response = await api.get('analytics/dashboard/');
       return response.data;
     },
-    refetchInterval: 5000,
+    staleTime: 5 * 60 * 1000,
   });
+
+  const orders = dashboardData?.recent_orders || [];
+  const wishlist = dashboardData?.wishlist || { items: [] };
+  const stats = dashboardData?.stats || {};
+
+  const isOrdersLoading = isDashboardLoading && !orders.length;
+  const isWishlistLoading = isDashboardLoading && !wishlist.items?.length;
 
   const selectedOrder = orders?.find(o => o.id === selectedOrderId);
   const trackingOrder = orders?.find(o => o.id === trackingOrderId);
-
-  const { data: wishlist, isLoading: isWishlistLoading } = useQuery({
-    queryKey: ['wishlist'],
-    queryFn: async () => {
-      const response = await api.get('wishlist/');
-      return response.data;
-    }
-  });
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
@@ -114,11 +113,11 @@ const CustomerDashboard = () => {
           <div className="flex gap-4">
              <div className="text-center px-6 py-2 bg-slate-50 rounded-2xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-400 uppercase">Orders</p>
-                <p className="text-lg font-bold text-blue-600">{orders?.length || 0}</p>
+                <p className="text-lg font-bold text-blue-600">{stats.total_orders || 0}</p>
              </div>
              <div className="text-center px-6 py-2 bg-slate-50 rounded-2xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-400 uppercase">Wishlist</p>
-                <p className="text-lg font-bold text-pink-600">{wishlist?.items?.length || 0}</p>
+                <p className="text-lg font-bold text-pink-600">{stats.wishlist_count || 0}</p>
              </div>
           </div>
         </div>

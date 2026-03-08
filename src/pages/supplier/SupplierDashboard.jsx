@@ -31,13 +31,14 @@ const SupplierDashboard = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: dashboardData, isLoading, error: queryError, refetch } = useQuery({
+  const { data: supplierData, isLoading, error: queryError, refetch } = useQuery({
     queryKey: ['supplier-dashboard'],
     queryFn: async () => {
       const res = await api.get('analytics/dashboard/');
       return res.data;
     },
-    staleTime: 60000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   const { data: categories = [] } = useQuery({

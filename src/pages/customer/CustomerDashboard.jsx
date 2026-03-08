@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { normalizeImageUrl, safeData } from '../../utils/helpers';
 
 const CustomerDashboard = () => {
   const navigate = useNavigate();
@@ -250,7 +251,7 @@ const CustomerDashboard = () => {
                           <div key={item.id} className="flex gap-4 items-center">
                             <div className="w-16 h-16 bg-white rounded-xl border border-slate-100 overflow-hidden shrink-0">
                                {item.product_details?.images?.[0]?.image && (
-                                 <img src={item.product_details.images[0].image} alt={item.product_details.name} className="w-full h-full object-cover" />
+                                 <img src={normalizeImageUrl(item.product_details.images[0].image)} alt={item.product_details.name} className="w-full h-full object-cover" />
                                )}
                             </div>
                             <div className="flex-grow">

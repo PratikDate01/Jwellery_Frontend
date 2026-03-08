@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
+import { normalizeImageUrl, safeData } from '../../utils/helpers';
 
 const AdminDashboard = () => {
   const queryClient = useQueryClient();
@@ -42,7 +43,7 @@ const AdminDashboard = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
 
   // Main dashboard data (Aggregated Overview)
-  const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
+  const { data: dashboardData, isLoading: isDashboardLoading, isError: isDashboardError } = useQuery({
     queryKey: ['admin-dashboard-overview'],
     queryFn: async () => {
       const res = await api.get('analytics/dashboard/');
@@ -53,91 +54,91 @@ const AdminDashboard = () => {
   });
 
   // Tab-specific queries - only run when tab is active (enabled: activeTab === '...')
-  const { data: products = [], isLoading: isProductsLoading } = useQuery({
+  const { data: products = [], isLoading: isProductsLoading, isError: isProductsError } = useQuery({
     queryKey: ['admin-products'],
     queryFn: async () => {
       const res = await api.get('products/');
-      return Array.isArray(res.data) ? res.data : res.data.results || [];
+      return safeData(res.data);
     },
     enabled: activeTab === 'products',
     staleTime: 60000,
   });
 
-  const { data: orders = [], isLoading: isOrdersLoading } = useQuery({
+  const { data: orders = [], isLoading: isOrdersLoading, isError: isOrdersError } = useQuery({
     queryKey: ['admin-orders'],
     queryFn: async () => {
       const res = await api.get('orders/');
-      return Array.isArray(res.data) ? res.data : res.data.results || [];
+      return safeData(res.data);
     },
     enabled: activeTab === 'orders',
     staleTime: 60000,
   });
 
-  const { data: users = [], isLoading: isUsersLoading } = useQuery({
+  const { data: users = [], isLoading: isUsersLoading, isError: isUsersError } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
       const res = await api.get('accounts/admin/users/');
-      return Array.isArray(res.data) ? res.data : res.data.results || [];
+      return safeData(res.data);
     },
     enabled: activeTab === 'users',
     staleTime: 120000,
   });
 
-  const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({
+  const { data: categories = [], isLoading: isCategoriesLoading, isError: isCategoriesError } = useQuery({
     queryKey: ['admin-categories'],
     queryFn: async () => {
       const res = await api.get('categories/');
-      return Array.isArray(res.data) ? res.data : res.data.results || [];
+      return safeData(res.data);
     },
     enabled: activeTab === 'collections',
     staleTime: 300000,
   });
 
-  const { data: coupons = [], isLoading: isCouponsLoading } = useQuery({
+  const { data: coupons = [], isLoading: isCouponsLoading, isError: isCouponsError } = useQuery({
     queryKey: ['admin-coupons'],
     queryFn: async () => {
       const res = await api.get('coupons/');
-      return Array.isArray(res.data) ? res.data : res.data.results || [];
+      return safeData(res.data);
     },
     enabled: activeTab === 'coupons',
     staleTime: 300000,
   });
 
-  const { data: supplierProducts = [], isLoading: isSupplierProductsLoading } = useQuery({
+  const { data: supplierProducts = [], isLoading: isSupplierProductsLoading, isError: isSupplierProductsError } = useQuery({
     queryKey: ['admin-supplier-products'],
     queryFn: async () => {
       const res = await api.get('products/supplier-products/');
-      return Array.isArray(res.data) ? res.data : res.data.results || [];
+      return safeData(res.data);
     },
     enabled: activeTab === 'supplier-products',
     staleTime: 60000,
   });
 
-  const { data: purchaseOrders = [], isLoading: isPurchaseOrdersLoading } = useQuery({
+  const { data: purchaseOrders = [], isLoading: isPurchaseOrdersLoading, isError: isPurchaseOrdersError } = useQuery({
     queryKey: ['admin-purchase-orders'],
     queryFn: async () => {
       const res = await api.get('products/purchase-orders/');
-      return Array.isArray(res.data) ? res.data : res.data.results || [];
+      return safeData(res.data);
     },
     enabled: activeTab === 'purchase-orders',
     staleTime: 60000,
   });
 
-  const { data: stockLedger = [], isLoading: isStockLedgerLoading } = useQuery({
+  const { data: stockLedger = [], isLoading: isStockLedgerLoading, isError: isStockLedgerError } = useQuery({
     queryKey: ['admin-stock-ledger'],
     queryFn: async () => {
       const res = await api.get('products/stock-ledger/');
-      return Array.isArray(res.data) ? res.data : res.data.results || [];
+      return safeData(res.data);
     },
     enabled: activeTab === 'stock-ledger',
     staleTime: 120000,
   });
 
-  const { data: negotiations = [], isLoading: isNegotiationsLoading } = useQuery({
+  const { data: negotiations = [], isLoading: isNegotiationsLoading, isError: isNegotiationsError } = useQuery({
     queryKey: ['admin-negotiations'],
     queryFn: async () => {
       const res = await api.get('wholesale/negotiations/');
-      return Array.isArray(res.data) ? res.data : res.data.results || [];
+      return safeData(res.data);
     },
     enabled: activeTab === 'negotiations',
     staleTime: 60000,
@@ -164,7 +165,16 @@ const AdminDashboard = () => {
 
   // Added error tracking for dashboards
   const isCriticalError = 
-    (activeTab === 'overview' && !dashboardData && !isDashboardLoading);
+    (activeTab === 'overview' && isDashboardError) ||
+    (activeTab === 'products' && isProductsError) ||
+    (activeTab === 'orders' && isOrdersError) ||
+    (activeTab === 'users' && isUsersError) ||
+    (activeTab === 'collections' && isCategoriesError) ||
+    (activeTab === 'coupons' && isCouponsError) ||
+    (activeTab === 'supplier-products' && isSupplierProductsError) ||
+    (activeTab === 'purchase-orders' && isPurchaseOrdersError) ||
+    (activeTab === 'stock-ledger' && isStockLedgerError) ||
+    (activeTab === 'negotiations' && isNegotiationsError);
 
   const loading = isTabLoading && !isCriticalError;
 
@@ -699,7 +709,7 @@ const AdminDashboard = () => {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden">
                             {product.images?.[0] ? (
-                              <img src={product.images[0].image} alt="" className="w-full h-full object-cover" />
+                              <img src={normalizeImageUrl(product.images[0].image)} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <ImageIcon size={18} className="text-slate-400" />
                             )}
@@ -928,7 +938,7 @@ const AdminDashboard = () => {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden">
                             {product.images?.[0] ? (
-                              <img src={product.images[0].image} alt="" className="w-full h-full object-cover" />
+                              <img src={normalizeImageUrl(product.images[0].image)} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <ImageIcon size={18} className="text-slate-400" />
                             )}

@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
+import { normalizeImageUrl, safeData } from '../../utils/helpers';
 
 const SupplierDashboard = () => {
   const { user, logout } = useAuth();
@@ -45,7 +46,7 @@ const SupplierDashboard = () => {
     queryKey: ['categories'],
     queryFn: async () => {
       const res = await api.get('categories/');
-      return res.data;
+      return safeData(res.data);
     },
     staleTime: 300000,
   });
@@ -54,7 +55,7 @@ const SupplierDashboard = () => {
     queryKey: ['supplier-purchase-orders'],
     queryFn: async () => {
       const res = await api.get('products/purchase-orders/supplier_orders/');
-      return Array.isArray(res.data) ? res.data : res.data.results || [];
+      return safeData(res.data);
     },
     staleTime: 60000,
   });

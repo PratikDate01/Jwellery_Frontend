@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Heart, ShoppingBag } from 'lucide-react';
 import api from '../../services/api';
 import { toast } from 'react-hot-toast';
+import { normalizeImageUrl } from '../../utils/helpers';
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ const ProductCard = ({ product }) => {
       {/* Product Image */}
       <Link to={`/product/${product.id}`} className="block relative aspect-[4/5] overflow-hidden bg-slate-50">
         <img 
-          src={primaryImage} 
+          src={normalizeImageUrl(primaryImage)} 
           alt={product.name} 
           className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
         />

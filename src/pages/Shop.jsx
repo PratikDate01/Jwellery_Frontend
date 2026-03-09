@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 
 const Shop = () => {
   const [filters, setFilters] = useState({
-    category: '',
+    category__slug: '',
     min_price: '',
     max_price: '',
     ordering: '-created_at'
@@ -19,7 +19,12 @@ const Shop = () => {
   const { data: products = [], isLoading: isProductsLoading } = useQuery({
     queryKey: ['products', filters],
     queryFn: async () => {
-      const res = await api.get('products/', { params: filters });
+      // Clean filters before sending
+      const params = {};
+      Object.keys(filters).forEach(key => {
+        if (filters[key]) params[key] = filters[key];
+      });
+      const res = await api.get('products/', { params });
       return res.data;
     },
     staleTime: 60000, // 1 minute
@@ -72,16 +77,16 @@ const Shop = () => {
                 </h3>
                 <div className="space-y-3">
                   <button
-                    onClick={() => setFilters({...filters, category: ''})}
-                    className={`block w-full text-left text-sm py-1 transition-all ${!filters.category ? 'text-gold-600 font-medium translate-x-1' : 'text-slate-500 hover:text-slate-900 hover:translate-x-1'}`}
+                    onClick={() => setFilters({...filters, category__slug: ''})}
+                    className={`block w-full text-left text-sm py-1 transition-all ${!filters.category__slug ? 'text-gold-600 font-medium translate-x-1' : 'text-slate-500 hover:text-slate-900 hover:translate-x-1'}`}
                   >
                     All Collections
                   </button>
                   {categories.map(cat => (
                     <button
                       key={cat.id}
-                      onClick={() => setFilters({...filters, category: cat.slug})}
-                      className={`block w-full text-left text-sm py-1 transition-all ${filters.category === cat.slug ? 'text-gold-600 font-medium translate-x-1' : 'text-slate-500 hover:text-slate-900 hover:translate-x-1'}`}
+                      onClick={() => setFilters({...filters, category__slug: cat.slug})}
+                      className={`block w-full text-left text-sm py-1 transition-all ${filters.category__slug === cat.slug ? 'text-gold-600 font-medium translate-x-1' : 'text-slate-500 hover:text-slate-900 hover:translate-x-1'}`}
                     >
                       {cat.name}
                     </button>
@@ -176,7 +181,7 @@ const Shop = () => {
                       We couldn't find any pieces matching your current refinement.
                     </p>
                     <button 
-                      onClick={() => setFilters({category: '', min_price: '', max_price: '', ordering: '-created_at'})}
+                      onClick={() => setFilters({category__slug: '', min_price: '', max_price: '', ordering: '-created_at'})}
                       className="text-gold-600 font-bold text-[10px] uppercase tracking-widest border-b-2 border-gold-200 pb-1"
                     >
                       Clear all filters
@@ -220,16 +225,16 @@ const Shop = () => {
                   <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-6">Collections</h3>
                   <div className="flex flex-wrap gap-2">
                     <button
-                      onClick={() => setFilters({...filters, category: ''})}
-                      className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${!filters.category ? 'bg-gold-600 text-white' : 'bg-slate-50 text-slate-500'}`}
+                      onClick={() => setFilters({...filters, category__slug: ''})}
+                      className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${!filters.category__slug ? 'bg-gold-600 text-white' : 'bg-slate-50 text-slate-500'}`}
                     >
                       All
                     </button>
                     {categories.map(cat => (
                       <button
                         key={cat.id}
-                        onClick={() => setFilters({...filters, category: cat.slug})}
-                        className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${filters.category === cat.slug ? 'bg-gold-600 text-white' : 'bg-slate-50 text-slate-500'}`}
+                        onClick={() => setFilters({...filters, category__slug: cat.slug})}
+                        className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${filters.category__slug === cat.slug ? 'bg-gold-600 text-white' : 'bg-slate-50 text-slate-500'}`}
                       >
                         {cat.name}
                       </button>

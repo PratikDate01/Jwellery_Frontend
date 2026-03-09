@@ -90,7 +90,7 @@ const AdminDashboard = () => {
       const res = await api.get('categories/');
       return safeData(res.data);
     },
-    enabled: activeTab === 'collections',
+    enabled: activeTab === 'categories' || activeTab === 'products',
     staleTime: 300000,
   });
 
@@ -154,7 +154,7 @@ const AdminDashboard = () => {
     (activeTab === 'products' && isProductsLoading) ||
     (activeTab === 'orders' && isOrdersLoading) ||
     (activeTab === 'users' && isUsersLoading) ||
-    (activeTab === 'collections' && isCategoriesLoading) ||
+    (activeTab === 'categories' && isCategoriesLoading) ||
     (activeTab === 'coupons' && isCouponsLoading) ||
     (activeTab === 'supplier-products' && isSupplierProductsLoading) ||
     (activeTab === 'purchase-orders' && isPurchaseOrdersLoading) ||
@@ -169,7 +169,7 @@ const AdminDashboard = () => {
     (activeTab === 'products' && isProductsError) ||
     (activeTab === 'orders' && isOrdersError) ||
     (activeTab === 'users' && isUsersError) ||
-    (activeTab === 'collections' && isCategoriesError) ||
+    (activeTab === 'categories' && isCategoriesError) ||
     (activeTab === 'coupons' && isCouponsError) ||
     (activeTab === 'supplier-products' && isSupplierProductsError) ||
     (activeTab === 'purchase-orders' && isPurchaseOrdersError) ||

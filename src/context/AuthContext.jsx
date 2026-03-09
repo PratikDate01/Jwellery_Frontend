@@ -107,7 +107,6 @@ export const AuthProvider = ({ children }) => {
     logout,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'ADMIN',
-    isWholesaler: user?.role === 'WHOLESALER',
     isSupplier: user?.role === 'SUPPLIER',
     isCustomer: user?.role === 'CUSTOMER',
   };

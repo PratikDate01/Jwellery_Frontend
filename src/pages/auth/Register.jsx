@@ -23,7 +23,6 @@ const Register = () => {
 
   const roles = [
     { id: 'CUSTOMER', label: 'Customer', description: 'Personal shopping', icon: '👤' },
-    { id: 'WHOLESALER', label: 'Wholesaler', description: 'Bulk buying', icon: '📦' },
     { id: 'SUPPLIER', label: 'Supplier', description: 'Sell with us', icon: '🏪' },
   ];
 

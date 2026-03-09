@@ -4,10 +4,10 @@ import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { 
   LayoutDashboard, Package, ListTree, ShoppingCart, 
-  Users, Ticket, BarChart3, Settings,
+  Users, Ticket, Settings,
   TrendingUp, IndianRupee, Clock, AlertTriangle,
   Edit, Trash2, CheckCircle, XCircle, Plus, X, Upload, ImageIcon, LogOut,
-  FileText, Briefcase, History as LedgerIcon, MessageSquare
+  FileText, Briefcase, History as LedgerIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -134,16 +134,6 @@ const AdminDashboard = () => {
     staleTime: 120000,
   });
 
-  const { data: negotiations = [], isLoading: isNegotiationsLoading, isError: isNegotiationsError } = useQuery({
-    queryKey: ['admin-negotiations'],
-    queryFn: async () => {
-      const res = await api.get('wholesale/negotiations/');
-      return safeData(res.data);
-    },
-    enabled: activeTab === 'negotiations',
-    staleTime: 60000,
-  });
-
   const stats = dashboardData?.stats || {};
   const recentOrders = dashboardData?.recent_orders || [];
   const lowStockProducts = dashboardData?.low_stock || [];
@@ -158,8 +148,7 @@ const AdminDashboard = () => {
     (activeTab === 'coupons' && isCouponsLoading) ||
     (activeTab === 'supplier-products' && isSupplierProductsLoading) ||
     (activeTab === 'purchase-orders' && isPurchaseOrdersLoading) ||
-    (activeTab === 'stock-ledger' && isStockLedgerLoading) ||
-    (activeTab === 'negotiations' && isNegotiationsLoading);
+    (activeTab === 'stock-ledger' && isStockLedgerLoading);
     
   const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting: formSubmitting } } = useForm();
 
@@ -173,8 +162,7 @@ const AdminDashboard = () => {
     (activeTab === 'coupons' && isCouponsError) ||
     (activeTab === 'supplier-products' && isSupplierProductsError) ||
     (activeTab === 'purchase-orders' && isPurchaseOrdersError) ||
-    (activeTab === 'stock-ledger' && isStockLedgerError) ||
-    (activeTab === 'negotiations' && isNegotiationsError);
+    (activeTab === 'stock-ledger' && isStockLedgerError);
 
   const loading = isTabLoading && !isCriticalError;
 
@@ -506,29 +494,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleAcceptNegotiation = async (id) => {
-    const response = window.prompt("Admin response (optional):");
-    try {
-      await api.post(`wholesale/negotiations/${id}/accept/`, { response });
-      toast.success("Negotiation accepted!");
-      queryClient.invalidateQueries(['admin-negotiations']);
-    } catch (error) {
-      toast.error("Action failed.");
-    }
-  };
-
-  const handleRejectNegotiation = async (id) => {
-    const response = window.prompt("Reason for rejection:");
-    if (response === null) return;
-    try {
-      await api.post(`wholesale/negotiations/${id}/reject/`, { response });
-      toast.success("Negotiation rejected.");
-      queryClient.invalidateQueries(['admin-negotiations']);
-    } catch (error) {
-      toast.error("Action failed.");
-    }
-  };
-
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -540,12 +505,10 @@ const AdminDashboard = () => {
     { id: 'categories', name: 'Collections', icon: ListTree },
     { id: 'orders', name: 'Orders', icon: ShoppingCart },
     { id: 'purchase-orders', name: 'Purchase Orders', icon: Briefcase },
-    { id: 'negotiations', name: 'Negotiations', icon: MessageSquare },
     { id: 'stock-ledger', name: 'Stock Ledger', icon: LedgerIcon },
     { id: 'users', name: 'Customers', icon: Users },
     { id: 'coupons', name: 'Coupons', icon: Ticket },
     { id: 'supplier-products', name: 'Vendor Approvals', icon: Clock },
-    { id: 'analytics', name: 'Reports', icon: BarChart3 },
     { id: 'settings', name: 'Settings', icon: Settings },
   ];
 
@@ -1060,62 +1023,6 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {activeTab === 'negotiations' && (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900">Wholesale Negotiations</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-slate-50">
-                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-400">Wholesaler</th>
-                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-400">Product</th>
-                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-400">Qty</th>
-                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-400">Offered Price</th>
-                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-400">Status</th>
-                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-400 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {negotiations.map(neg => (
-                    <tr key={neg.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="p-4 text-sm font-bold text-slate-900">{neg.wholesaler_name}</td>
-                      <td className="p-4 text-sm text-slate-600">{neg.product_name}</td>
-                      <td className="p-4 text-sm font-medium text-slate-900">{neg.quantity}</td>
-                      <td className="p-4 text-sm font-bold text-slate-900">₹{parseFloat(neg.offered_price).toLocaleString('en-IN')}</td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                          neg.status === 'ACCEPTED' ? 'bg-green-50 text-green-600' : 
-                          neg.status === 'REJECTED' ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'
-                        }`}>
-                          {neg.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right">
-                        {neg.status === 'PENDING' ? (
-                          <div className="flex justify-end gap-2">
-                            <button onClick={() => handleAcceptNegotiation(neg.id)} className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-green-700">Accept</button>
-                            <button onClick={() => handleRejectNegotiation(neg.id)} className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-red-700">Reject</button>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-slate-400 italic">No actions available</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {negotiations.length === 0 && (
-                <div className="py-20 text-center">
-                  <MessageSquare size={40} className="mx-auto text-slate-200 mb-4" />
-                  <p className="text-slate-400 font-medium">No negotiations found.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {activeTab === 'stock-ledger' && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-100">
@@ -1165,14 +1072,6 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
-          </div>
-        )}
-
-        {activeTab === 'analytics' && (
-          <div className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm text-center py-20">
-            <BarChart3 size={40} className="mx-auto text-slate-200 mb-4" />
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Reports & Analytics</h3>
-            <p className="text-slate-500 text-sm max-w-sm mx-auto">This section is being updated to provide more detailed real-time insights into your store's performance.</p>
           </div>
         )}
 

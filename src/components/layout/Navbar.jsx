@@ -99,7 +99,6 @@ const Navbar = () => {
                         <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full inline-block mt-2 ${
                           user?.role === 'ADMIN' ? 'bg-red-100 text-red-700' :
                           user?.role === 'SUPPLIER' ? 'bg-blue-100 text-blue-700' :
-                          user?.role === 'WHOLESALER' ? 'bg-purple-100 text-purple-700' :
                           'bg-green-100 text-green-700'
                         }`}>
                           {user?.role}

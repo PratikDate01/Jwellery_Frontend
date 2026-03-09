@@ -16,7 +16,6 @@ const Register = React.lazy(() => import('./pages/auth/Register'));
 // Dashboard Pages
 const AdminDashboard = React.lazy(() => import('./pages/dashboards/AdminDashboard'));
 const CustomerDashboard = React.lazy(() => import('./pages/customer/CustomerDashboard'));
-const WholesalerDashboard = React.lazy(() => import('./pages/wholesaler/WholesalerDashboard'));
 const SupplierDashboard = React.lazy(() => import('./pages/supplier/SupplierDashboard'));
 const Cart = React.lazy(() => import('./pages/Cart'));
 const Wishlist = React.lazy(() => import('./pages/Wishlist'));
@@ -75,11 +74,6 @@ function App() {
             <Route path="dashboard/customer" element={
               <ProtectedRoute allowedRoles={['CUSTOMER']}>
                 <CustomerDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="dashboard/wholesaler" element={
-              <ProtectedRoute allowedRoles={['WHOLESALER']}>
-                <WholesalerDashboard />
               </ProtectedRoute>
             } />
             <Route path="dashboard/supplier" element={

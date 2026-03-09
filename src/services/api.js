@@ -1,11 +1,17 @@
 import axios from 'axios';
 
 const getDefaultApiUrl = () => {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    return 'http://localhost:8000';
+  const envUrl = import.meta.env.VITE_API_URL;
+  const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  // If env is localhost but we are on production, or if no env URL, use production URL
+  if ((envUrl && envUrl.includes('localhost') && !isLocalhost) || !envUrl) {
+    if (isLocalhost) return 'http://localhost:8000';
+    return 'https://jewellery-backend-ewfw.onrender.com';
   }
-  return 'https://jewellery-backend-ewfw.onrender.com';
+
+  return envUrl;
 };
 
 const API_BASE_URL = getDefaultApiUrl();

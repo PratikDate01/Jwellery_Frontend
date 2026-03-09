@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Star, ShieldCheck, Truck, RefreshCw, Award } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
+import { normalizeImageUrl } from '../utils/helpers';
 
 const Home = () => {
   const { data: categories = [] } = useQuery({
@@ -125,7 +126,7 @@ const Home = () => {
               categories.map((cat, i) => (
                 <Link key={i} to={`/shop?category=${cat.slug}`} className="group relative aspect-[3/4] overflow-hidden bg-slate-100">
                   <img 
-                    src={cat.image || "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=2070"} 
+                    src={normalizeImageUrl(cat.image) || "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=2070"} 
                     alt={cat.name} 
                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                   />

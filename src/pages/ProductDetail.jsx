@@ -6,6 +6,7 @@ import { ShoppingBag, Heart, ShieldCheck, Truck, RotateCcw, Star, ChevronRight }
 import { toast } from 'react-hot-toast';
 import Loader from '../components/common/Loader';
 import BackButton from '../components/common/BackButton';
+import { normalizeImageUrl } from '../utils/helpers';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -92,7 +93,7 @@ const ProductDetail = () => {
                 key={activeImg}
                 initial={{ opacity: 0, scale: 1.05 }}
                 animate={{ opacity: 1, scale: 1 }}
-                src={images[activeImg].image}
+                src={normalizeImageUrl(images[activeImg].image)}
                 alt={product.name}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
@@ -111,7 +112,7 @@ const ProductDetail = () => {
                   onClick={() => setActiveImg(idx)}
                   className={`w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden border-2 transition-all ${activeImg === idx ? 'border-gold-500 scale-95 shadow-lg' : 'border-slate-100 opacity-60 hover:opacity-100'}`}
                 >
-                  <img src={img.image} alt="" className="w-full h-full object-cover" />
+                  <img src={normalizeImageUrl(img.image)} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>

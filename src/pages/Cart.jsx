@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import Loader from '../components/common/Loader';
 import BackButton from '../components/common/BackButton';
+import { normalizeImageUrl } from '../utils/helpers';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Cart = () => {
@@ -86,7 +87,7 @@ const Cart = () => {
                     className="bg-white rounded-[40px] p-8 md:p-10 shadow-2xl shadow-slate-200/50 flex flex-col md:flex-row items-center gap-10 group border border-slate-100/50"
                   >
                     <div className="w-48 h-48 bg-slate-50 rounded-[32px] overflow-hidden flex-shrink-0 shadow-lg shadow-slate-200/50">
-                      <img src={item.product_details?.images?.[0]?.image} alt={item.product_details?.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      <img src={normalizeImageUrl(item.product_details?.images?.[0]?.image)} alt={item.product_details?.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                     </div>
                     
                     <div className="flex-1 w-full text-center md:text-left">

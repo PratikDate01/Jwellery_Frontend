@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import api from '../../services/api';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Heart, Menu, X, Search, LogOut, User, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,6 +11,19 @@ const Navbar = () => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  const { data: cart } = useQuery({
+    queryKey: ['cart'],
+    queryFn: async () => {
+      if (!isAuthenticated) return null;
+      const res = await api.get('cart/current/');
+      return res.data;
+    },
+    enabled: isAuthenticated,
+    staleTime: 30000,
+  });
+
+  const cartCount = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
 
   const handleLogout = () => {
     logout();
@@ -64,7 +79,7 @@ const Navbar = () => {
                 <Link to="/cart" className="text-slate-500 hover:text-gold-600 transition-colors relative">
                   <ShoppingCart size={20} strokeWidth={1.5} />
                   <span className="absolute -top-2 -right-2 bg-gold-500 text-white text-[9px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
-                    0
+                    {cartCount}
                   </span>
                 </Link>
               </>
@@ -177,8 +192,13 @@ const Navbar = () => {
                   <Link to="/wishlist" onClick={() => setIsMobileMenuOpen(false)} className="flex-1 text-center py-3 border border-slate-200 rounded-xl hover:bg-slate-50">
                     <Heart size={20} className="inline" />
                   </Link>
-                  <Link to="/cart" onClick={() => setIsMobileMenuOpen(false)} className="flex-1 text-center py-3 border border-slate-200 rounded-xl hover:bg-slate-50">
+                  <Link to="/cart" onClick={() => setIsMobileMenuOpen(false)} className="flex-1 text-center py-3 border border-slate-200 rounded-xl hover:bg-slate-50 relative">
                     <ShoppingCart size={20} className="inline" />
+                    {cartCount > 0 && (
+                      <span className="absolute top-2 right-4 bg-gold-500 text-white text-[8px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+                        {cartCount}
+                      </span>
+                    )}
                   </Link>
                 </div>
               )}

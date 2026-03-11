@@ -38,7 +38,7 @@ const SupplierDashboard = () => {
       const res = await api.get('analytics/dashboard/');
       return res.data;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30000, // 30 seconds for better "real-time" feel
     gcTime: 10 * 60 * 1000,
   });
 
@@ -57,7 +57,7 @@ const SupplierDashboard = () => {
       const res = await api.get('products/purchase-orders/supplier_orders/');
       return safeData(res.data);
     },
-    staleTime: 60000,
+    staleTime: 30000,
   });
 
   const createProductMutation = useMutation({
@@ -93,10 +93,54 @@ const SupplierDashboard = () => {
         diamond_clarity: '',
       });
       setUploadedImages([]);
+      queryClient.invalidateQueries(['supplier-dashboard']);
       refetch();
     },
     onError: (err) => {
       const msg = err.response?.data?.detail || err.response?.data?.name?.[0] || 'Failed to create product';
+      toast.error(msg);
+    },
+  });
+
+  const updateProductMutation = useMutation({
+    mutationFn: async ({ id, formData }) => {
+      const data = new FormData();
+      data.append('name', formData.name);
+      data.append('description', formData.description);
+      data.append('price', formData.price);
+      data.append('available_quantity', formData.available_quantity);
+      data.append('category', formData.category);
+      data.append('purity', formData.purity);
+      if (formData.gold_weight) data.append('gold_weight', formData.gold_weight);
+      if (formData.diamond_clarity) data.append('diamond_clarity', formData.diamond_clarity);
+      
+      uploadedImages.forEach((image) => {
+        data.append('uploaded_images', image);
+      });
+
+      const res = await api.patch(`products/supplier-products/${id}/`, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('Product updated successfully!');
+      setShowProductModal(false);
+      setSelectedProduct(null);
+      setProductFormData({
+        name: '',
+        description: '',
+        price: '',
+        available_quantity: '',
+        category: '',
+        purity: '22K',
+        gold_weight: '',
+        diamond_clarity: '',
+      });
+      setUploadedImages([]);
+      queryClient.invalidateQueries(['supplier-dashboard']);
+      refetch();
+    },
+    onError: (err) => {
+      const msg = err.response?.data?.detail || 'Failed to update product';
       toast.error(msg);
     },
   });
@@ -142,7 +186,7 @@ const SupplierDashboard = () => {
       return;
     }
     if (selectedProduct) {
-      toast('Edit functionality coming soon');
+      updateProductMutation.mutate({ id: selectedProduct.id, formData: productFormData });
     } else {
       createProductMutation.mutate(productFormData);
     }
@@ -325,7 +369,12 @@ const SupplierDashboard = () => {
                           <p className="text-sm font-bold text-slate-900 truncate">{item.name}</p>
                           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Stock: {item.available_quantity || item.stock_quantity}</p>
                         </div>
-                        <button className="text-[10px] font-bold text-blue-600 hover:text-blue-800 whitespace-nowrap">Edit</button>
+                        <button 
+                          onClick={() => handleEditProduct(item)}
+                          className="text-[10px] font-bold text-blue-600 hover:text-blue-800 whitespace-nowrap"
+                        >
+                          Edit
+                        </button>
                       </div>
                     ))
                   ) : (
@@ -368,8 +417,12 @@ const SupplierDashboard = () => {
                         </td>
                         <td className="p-4 text-sm font-medium text-slate-600">{item.available_quantity || item.stock_quantity} units</td>
                         <td className="p-4">
-                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${item.is_approved ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
-                            {item.is_approved ? 'Approved' : 'Pending'}
+                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
+                            item.status === 'APPROVED' ? 'bg-green-50 text-green-600' : 
+                            item.status === 'REJECTED' ? 'bg-red-50 text-red-600' :
+                            'bg-orange-50 text-orange-600'
+                          }`}>
+                            {item.status || 'Pending'}
                           </span>
                         </td>
                         <td className="p-4 text-right">

@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
       // Wait for profile with a reasonable timeout for UI responsiveness
       const response = await Promise.race([
         profilePromise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000))
       ]);
 
       if (response.data) {

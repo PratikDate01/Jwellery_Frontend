@@ -17,8 +17,8 @@ const getDefaultApiUrl = () => {
 const API_BASE_URL = getDefaultApiUrl();
 
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
-  timeout: 120000, // Increased to 120s for Render cold starts
+  baseURL: `${API_BASE_URL}/api/`,
+  timeout: 120000,
 });
 
 // Health check to wake up the backend
@@ -79,20 +79,27 @@ api.interceptors.request.use(
     let url = config.url || '';
     
     // Auth headers
-    if (token && !url.includes('accounts/login') && !url.includes('accounts/register')) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const skipAuth = 
+      url.includes('accounts/login') || 
+      url.includes('accounts/register') || 
+      url.includes('accounts/token/refresh');
+
+    if (token && !skipAuth) {
+      config.headers.set('Authorization', `Bearer ${token}`);
     }
 
-    // Ensure leading slash for join logic with baseURL
-    if (!url.startsWith('/') && !url.startsWith('http')) {
-      config.url = `/${url}`;
+    // Ensure no leading slash when using baseURL with trailing slash
+    if (url.startsWith('/')) {
+      config.url = url.substring(1);
     }
 
-    // Handle FormData correctly
+    // Handle Content-Type correctly
     if (config.data instanceof FormData) {
-      delete config.headers['Content-Type'];
-    } else {
-      config.headers['Content-Type'] = 'application/json';
+      config.headers.delete('Content-Type');
+    } else if (config.data) {
+      if (!config.headers.get('Content-Type')) {
+        config.headers.set('Content-Type', 'application/json');
+      }
     }
 
     return config;
@@ -126,7 +133,7 @@ api.interceptors.response.use(
           const { access } = response.data;
           localStorage.setItem('access_token', access);
 
-          originalRequest.headers.Authorization = `Bearer ${access}`;
+          originalRequest.headers.set('Authorization', `Bearer ${access}`);
           return api(originalRequest);
         } catch (refreshError) {
           // Token is dead

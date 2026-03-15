@@ -197,11 +197,11 @@ const SupplierDashboard = () => {
     setProductFormData({
       name: product.name,
       description: product.description,
-      price: product.price || '',
-      available_quantity: product.available_quantity || '',
+      price: product.price ?? product.supplier_price ?? '',
+      available_quantity: product.available_quantity ?? product.available_stock ?? product.stock_quantity ?? '',
       category: product.category || '',
       purity: product.purity || '22K',
-      gold_weight: product.gold_weight || '',
+      gold_weight: product.gold_weight ?? product.weight ?? '',
       diamond_clarity: product.diamond_clarity || '',
     });
     setShowProductModal(true);
@@ -367,7 +367,7 @@ const SupplierDashboard = () => {
                       <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition-all">
                         <div className="min-w-0">
                           <p className="text-sm font-bold text-slate-900 truncate">{item.name}</p>
-                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Stock: {item.available_quantity || item.stock_quantity}</p>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Stock: {item.available_quantity ?? item.available_stock ?? item.stock_quantity ?? 0}</p>
                         </div>
                         <button 
                           onClick={() => handleEditProduct(item)}
@@ -415,7 +415,7 @@ const SupplierDashboard = () => {
                           <p className="text-sm font-bold text-slate-900">{item.name}</p>
                           <p className="text-[10px] text-slate-400 font-mono">{item.sku}</p>
                         </td>
-                        <td className="p-4 text-sm font-medium text-slate-600">{item.available_quantity || item.stock_quantity} units</td>
+                        <td className="p-4 text-sm font-medium text-slate-600">{item.available_quantity ?? item.available_stock ?? item.stock_quantity ?? 0} units</td>
                         <td className="p-4">
                           <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
                             item.status === 'APPROVED' ? 'bg-green-50 text-green-600' : 

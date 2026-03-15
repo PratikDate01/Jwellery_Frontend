@@ -454,14 +454,26 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleApproveSupplierProduct = async (id) => {
+  const handleApproveSupplierProduct = async (product) => {
+    const defaultPrice = product.suggested_retail_price || product.price || 0;
+    const sellingPrice = window.prompt(`Set selling price for "${product.name}":`, defaultPrice);
+    
+    if (sellingPrice === null) return;
+    if (!sellingPrice || isNaN(parseFloat(sellingPrice)) || parseFloat(sellingPrice) <= 0) {
+      toast.error("Please enter a valid selling price");
+      return;
+    }
+
     try {
-      await api.post(`products/supplier-products/${id}/approve/`);
+      await api.post(`products/supplier-products/${product.id}/approve/`, { 
+        selling_price: parseFloat(sellingPrice) 
+      });
       toast.success("Product approved and added to store!");
       queryClient.invalidateQueries(['admin-supplier-products']);
       queryClient.invalidateQueries(['admin-products']);
     } catch (error) {
-      toast.error("Approval failed.");
+      const msg = error.response?.data?.error || "Approval failed.";
+      toast.error(msg);
     }
   };
 

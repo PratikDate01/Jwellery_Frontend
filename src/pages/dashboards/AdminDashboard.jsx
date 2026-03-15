@@ -134,6 +134,16 @@ const AdminDashboard = () => {
     staleTime: 120000,
   });
 
+  const { data: suppliers = [], isLoading: isSuppliersLoading, isError: isSuppliersError } = useQuery({
+    queryKey: ['admin-suppliers'],
+    queryFn: async () => {
+      const res = await api.get('suppliers/');
+      return safeData(res.data);
+    },
+    enabled: activeTab === 'suppliers',
+    staleTime: 60000,
+  });
+
   const stats = dashboardData?.stats || {};
   const recentOrders = dashboardData?.recent_orders || [];
   const lowStockProducts = dashboardData?.low_stock || [];
@@ -148,7 +158,8 @@ const AdminDashboard = () => {
     (activeTab === 'coupons' && isCouponsLoading) ||
     (activeTab === 'supplier-products' && isSupplierProductsLoading) ||
     (activeTab === 'purchase-orders' && isPurchaseOrdersLoading) ||
-    (activeTab === 'stock-ledger' && isStockLedgerLoading);
+    (activeTab === 'stock-ledger' && isStockLedgerLoading) ||
+    (activeTab === 'suppliers' && isSuppliersLoading);
     
   const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting: formSubmitting } } = useForm();
 
@@ -162,7 +173,8 @@ const AdminDashboard = () => {
     (activeTab === 'coupons' && isCouponsError) ||
     (activeTab === 'supplier-products' && isSupplierProductsError) ||
     (activeTab === 'purchase-orders' && isPurchaseOrdersError) ||
-    (activeTab === 'stock-ledger' && isStockLedgerError);
+    (activeTab === 'stock-ledger' && isStockLedgerError) ||
+    (activeTab === 'suppliers' && isSuppliersError);
 
   const loading = isTabLoading && !isCriticalError;
 
@@ -482,6 +494,16 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleVerifySupplier = async (id) => {
+    try {
+      await api.post(`suppliers/${id}/verify/`);
+      toast.success("Supplier verified successfully!");
+      queryClient.invalidateQueries(['admin-suppliers']);
+    } catch (error) {
+      toast.error("Verification failed.");
+    }
+  };
+
   const handleMarkReceived = async (id) => {
     try {
       await api.post(`products/purchase-orders/${id}/mark_received/`);
@@ -507,6 +529,7 @@ const AdminDashboard = () => {
     { id: 'purchase-orders', name: 'Purchase Orders', icon: Briefcase },
     { id: 'stock-ledger', name: 'Stock Ledger', icon: LedgerIcon },
     { id: 'users', name: 'Customers', icon: Users },
+    { id: 'suppliers', name: 'Suppliers', icon: Briefcase },
     { id: 'coupons', name: 'Coupons', icon: Ticket },
     { id: 'supplier-products', name: 'Vendor Approvals', icon: Clock },
     { id: 'settings', name: 'Settings', icon: Settings },
@@ -838,6 +861,78 @@ const AdminDashboard = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {activeTab === 'suppliers' && (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-slate-900">Suppliers</h3>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold uppercase">
+                  {suppliers.length} Total
+                </span>
+                <span className="px-2 py-1 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-bold uppercase">
+                  {suppliers.filter(s => !s.is_verified).length} Unverified
+                </span>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-slate-50">
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-400">Company</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-400">GST/PAN</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-400">Status</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-400 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {suppliers.map(s => (
+                    <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="p-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-900">{s.company_name}</span>
+                          <span className="text-xs text-slate-500">{s.business_address}</span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">GST: {s.gst_number}</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">PAN: {s.pan_number}</span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        {s.is_verified ? (
+                          <span className="px-2 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold uppercase flex items-center gap-1 w-fit">
+                            <CheckCircle size={10} /> Verified
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-bold uppercase flex items-center gap-1 w-fit">
+                            <Clock size={10} /> Pending
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-right">
+                        {!s.is_verified && (
+                          <button 
+                            onClick={() => handleVerifySupplier(s.id)}
+                            className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm"
+                          >
+                            Verify
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {suppliers.length === 0 && (
+                    <tr>
+                      <td colSpan="4" className="p-8 text-center text-slate-400 text-sm">No suppliers found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

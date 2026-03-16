@@ -1033,7 +1033,7 @@ const AdminDashboard = () => {
                         {product.status === 'PENDING' ? (
                           <div className="flex justify-end gap-2">
                             <button 
-                              onClick={() => handleApproveSupplierProduct(product.id)}
+                              onClick={() => handleApproveSupplierProduct(product)}
                               className="px-3 py-1 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700 transition-colors"
                             >
                               Approve

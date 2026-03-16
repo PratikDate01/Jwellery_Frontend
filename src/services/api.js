@@ -35,8 +35,8 @@ export const warmupBackend = async () => {
     
     while (attempts < maxAttempts) {
       try {
-        // Use a shorter timeout for individual attempts to cycle through them
-        await axios.get(`${API_BASE_URL}/api/health/`, { timeout: 30000 });
+        // Use a longer timeout for individual attempts to cycle through them
+        await axios.get(`${API_BASE_URL}/api/health/`, { timeout: 60000 });
         console.log('Backend service is awake and healthy.');
         return true;
       } catch (error) {

@@ -491,11 +491,16 @@ const AdminDashboard = () => {
 
   const onPOSubmit = async (data) => {
     try {
+      const quantity = parseInt(data.quantity);
+      const total_cost = parseFloat(data.total_cost);
+      const unit_cost_price = quantity > 0 ? (total_cost / quantity) : 0;
+
       await api.post('products/purchase-orders/', {
         product: data.product,
         supplier: data.supplier,
-        quantity: parseInt(data.quantity),
-        total_cost: parseFloat(data.total_cost),
+        quantity: quantity,
+        unit_cost_price: unit_cost_price,
+        total_cost: total_cost,
       });
       queryClient.invalidateQueries(['admin-purchase-orders']);
       setShowPOModal(false);

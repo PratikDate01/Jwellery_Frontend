@@ -31,20 +31,21 @@ export const warmupBackend = async () => {
   warmupPromise = (async () => {
     console.log('Waking up backend service...');
     let attempts = 0;
-    const maxAttempts = 3;
+    const maxAttempts = 5; // Increased to 5 attempts
     
     while (attempts < maxAttempts) {
       try {
-        // Use a longer timeout for individual attempts to cycle through them
-        await axios.get(`${API_BASE_URL}/api/health/`, { timeout: 60000 });
+        // Individual attempt timeout is 45s, total possible 225s + retries
+        await axios.get(`${API_BASE_URL}/api/health/`, { timeout: 45000 });
         console.log('Backend service is awake and healthy.');
         return true;
       } catch (error) {
         attempts++;
         console.warn(`Warmup attempt ${attempts} failed: ${error.message}`);
         if (attempts < maxAttempts) {
-          // Wait 2 seconds before retry
-          await new Promise(r => setTimeout(r, 2000));
+          // Progressively longer wait between retries
+          const waitTime = attempts * 2000;
+          await new Promise(r => setTimeout(r, waitTime));
         }
       }
     }

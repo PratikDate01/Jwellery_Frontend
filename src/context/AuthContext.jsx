@@ -29,15 +29,12 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // Set a timeout for the profile fetch so it doesn't block forever
-      // If it takes more than 2 seconds, we proceed as "logged in" but maybe partial data
-      // The ProtectedRoute or subsequent queries will handle the rest
+      // Set a longer timeout for the profile fetch (60s)
       const profilePromise = api.get('accounts/profile/');
       
-      // Wait for profile with a reasonable timeout for UI responsiveness
       const response = await Promise.race([
         profilePromise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 30000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timeout')), 60000))
       ]);
 
       if (response.data) {

@@ -60,7 +60,7 @@ const AdminDashboard = () => {
       const res = await api.get('products/');
       return safeData(res.data);
     },
-    enabled: activeTab === 'products',
+    enabled: activeTab === 'products' || activeTab === 'purchase-orders',
     staleTime: 60000,
   });
 
@@ -80,7 +80,7 @@ const AdminDashboard = () => {
       const res = await api.get('accounts/admin/users/');
       return safeData(res.data);
     },
-    enabled: activeTab === 'users',
+    enabled: activeTab === 'users' || activeTab === 'purchase-orders',
     staleTime: 120000,
   });
 

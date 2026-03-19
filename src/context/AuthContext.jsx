@@ -8,7 +8,6 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const logout = useCallback(() => {
     localStorage.removeItem('access_token');
@@ -29,27 +28,31 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // Set a longer timeout for the profile fetch (60s)
+      // Set a longer timeout for the profile fetch (120s) to handle extreme cold starts
       const profilePromise = api.get('accounts/profile/');
       
       const response = await Promise.race([
         profilePromise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timeout')), 60000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timeout (120s exceeded)')), 120000))
       ]);
 
       if (response.data) {
         setUser(response.data);
-        setError(null);
       }
     } catch (err) {
-      console.error('Auth initialization info:', err.message);
-      // If it's just a timeout, we keep loading as true or false?
+      const isTimeout = err.message.includes('timeout');
+      if (isTimeout) {
+        console.warn('Auth initialization info: Profile fetch timed out (Backend still warming up?)');
+      } else {
+        console.error('Auth initialization error:', err.message);
+      }
+      
       // If we have a token, we assume authenticated for now to show the UI
       if (accessToken) {
         // We have a token but profile fetch failed/timed out
         // Just set loading to false so the user can see the page
         // Subsequent API calls will either work or trigger a 401
-        console.log('Proceeding with cached token despite profile fetch delay');
+        console.log('Proceeding with cached token despite profile fetch issue');
       }
     } finally {
       setLoading(false);
@@ -84,7 +87,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('refresh_token', refresh);
       
       setUser(userData);
-      setError(null);
       
       // We don't strictly NEED to await the warmupPromise here as login succeeded,
       // but it's good practice to ensure it's not dangling

@@ -39,7 +39,7 @@ const Wishlist = () => {
       await api.post(`wishlist/remove/`, { product_id: id });
     },
     onSuccess: () => {
-      toast.success('Moved to your collection');
+      toast.success('Moved to your cart');
       queryClient.invalidateQueries(['wishlist']);
       queryClient.invalidateQueries(['cart']);
     },
@@ -108,7 +108,7 @@ const Wishlist = () => {
                       onClick={() => moveToCart(item.product_details?.id)}
                       className="w-full flex items-center justify-center gap-3 bg-slate-900 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-gold-600 transition-all"
                     >
-                      <ShoppingBag size={16} /> Add to Collection
+                      <ShoppingBag size={16} /> Add To Cart
                     </button>
                   </div>
                 </motion.div>

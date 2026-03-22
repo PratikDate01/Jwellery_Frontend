@@ -5,16 +5,19 @@ import { Heart, ShoppingBag } from 'lucide-react';
 import api from '../../services/api';
 import { toast } from 'react-hot-toast';
 import { normalizeImageUrl } from '../../utils/helpers';
+import { useQueryClient } from '@tanstack/react-query';
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const primaryImage = product.images?.find(img => img.is_primary)?.image || product.images?.[0]?.image;
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
     try {
       await api.post('cart/add_item/', { product_id: product.id, quantity: 1 });
-      toast.success('Added to collection');
+      toast.success('Added to cart');
+      queryClient.invalidateQueries(['cart']);
     } catch (error) {
       if (error.response?.status === 401) {
         toast.error('Please login first');

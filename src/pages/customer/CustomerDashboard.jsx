@@ -516,7 +516,7 @@ const CustomerDashboard = () => {
                               onClick={() => {
                                 api.post('cart/add_item/', { product_id: item.product_details?.id, quantity: 1 })
                                   .then(() => {
-                                    toast.success('Added to collection');
+                                    toast.success('Added to cart');
                                     removeFromWishlistMutation.mutate(item.product_details?.id);
                                   });
                               }}

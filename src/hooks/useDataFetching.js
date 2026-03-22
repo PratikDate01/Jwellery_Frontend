@@ -36,7 +36,7 @@ export const useAddToCart = () => {
       return response.data;
     },
     onSuccess: () => {
-      toast.success('Added to collection');
+      toast.success('Added to cart');
       // Invalidate cart queries to refetch the updated cart data
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },

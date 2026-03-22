@@ -39,7 +39,7 @@ const Cart = () => {
       await api.delete(`cart/items/${itemId}/`);
     },
     onSuccess: () => {
-      toast.success('Removed from collection');
+      toast.success('Removed from cart');
       queryClient.invalidateQueries(['cart']);
     },
     onError: () => {
@@ -68,8 +68,8 @@ const Cart = () => {
           <BackButton />
         </div>
         <header className="mb-16">
-          <h1 className="text-5xl font-serif text-slate-900 mb-4">Your Selection</h1>
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">Review your curated jewellery pieces</p>
+          <h1 className="text-5xl font-serif text-slate-900 mb-4">Your Cart</h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">Review your selected jewellery pieces</p>
         </header>
 
         {cartItems.length > 0 ? (
@@ -185,7 +185,7 @@ const Cart = () => {
             <div className="w-24 h-24 bg-luxury-ivory rounded-full flex items-center justify-center mx-auto mb-10 text-slate-300">
               <ShoppingBag size={40} />
             </div>
-            <h2 className="text-3xl font-serif text-slate-900 mb-4">Your collection is empty</h2>
+            <h2 className="text-3xl font-serif text-slate-900 mb-4">Your cart is empty</h2>
             <p className="text-slate-400 text-sm italic max-w-xs mx-auto mb-12">
               Begin your journey by exploring our curated masterpieces.
             </p>
@@ -193,7 +193,7 @@ const Cart = () => {
               to="/shop" 
               className="inline-flex items-center gap-3 bg-slate-900 text-white px-10 py-5 rounded-2xl font-bold uppercase tracking-widest text-[11px] hover:bg-gold-600 transition-all shadow-xl shadow-slate-900/10"
             >
-              Discover Collections <ArrowRight size={16} />
+              Explore Store <ArrowRight size={16} />
             </Link>
           </div>
         )}

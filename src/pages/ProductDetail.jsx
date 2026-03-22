@@ -8,11 +8,12 @@ import Loader from '../components/common/Loader';
 import BackButton from '../components/common/BackButton';
 import { normalizeImageUrl } from '../utils/helpers';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeImg, setActiveImg] = useState(0);
 
   const { data: product, isLoading: loading, error } = useQuery({
@@ -30,7 +31,8 @@ const ProductDetail = () => {
         product_id: product.id,
         quantity: 1
       });
-      toast.success('Added to your collection');
+      toast.success('Added to cart');
+      queryClient.invalidateQueries(['cart']);
     } catch (error) {
       if (error.response?.status === 401) {
         toast.error('Please login first');
@@ -44,13 +46,13 @@ const ProductDetail = () => {
   const handleAddToWishlist = async () => {
     try {
       await api.post('wishlist/add/', { product_id: product.id });
-      toast.success('Saved to your collection');
+      toast.success('Saved to wishlist');
     } catch (error) {
       if (error.response?.status === 401) {
         toast.error('Please login first');
         navigate('/login');
       } else {
-        toast.error('Already in collection');
+        toast.error('Already in wishlist');
       }
     }
   };
@@ -159,7 +161,7 @@ const ProductDetail = () => {
                 onClick={addToCart}
                 className="flex-1 bg-slate-900 text-white py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-[11px] hover:bg-gold-600 transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-3"
               >
-                <ShoppingBag size={18} /> Add to Collection
+                <ShoppingBag size={18} /> Add To Cart
               </button>
               <button 
                 onClick={handleAddToWishlist}

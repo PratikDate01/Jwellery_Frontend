@@ -49,8 +49,9 @@ const AdminDashboard = () => {
       const res = await api.get('analytics/dashboard/');
       return res.data;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - dashboard stats don't need to be live every second
+    staleTime: 30000, // Reduced from 5 min to 30 sec for more frequent updates
     gcTime: 10 * 60 * 1000,
+    refetchInterval: 10000, // Refetch every 10 seconds for real-time overview
   });
 
   // Tab-specific queries - only run when tab is active (enabled: activeTab === '...')
@@ -71,7 +72,8 @@ const AdminDashboard = () => {
       return safeData(res.data);
     },
     enabled: activeTab === 'orders',
-    staleTime: 60000,
+    staleTime: 0, // Always stale to ensure we get fresh data on refetch
+    refetchInterval: 5000, // Refetch every 5 seconds for real-time order management
   });
 
   const { data: users = [], isLoading: isUsersLoading, isError: isUsersError } = useQuery({
@@ -364,10 +366,11 @@ const AdminDashboard = () => {
     const nextStatus = statuses[nextIndex];
     
     try {
-      await api.patch(`orders/${id}/`, { status: nextStatus });
+      // Use the dedicated update_status action for better logging and timeline tracking
+      await api.post(`orders/${id}/update_status/`, { status: nextStatus, notes: 'Status updated by Admin via Dashboard' });
       toast.success(`Order status updated to ${nextStatus}`);
       queryClient.invalidateQueries(['admin-orders']);
-      queryClient.invalidateQueries(['admin-stats']);
+      queryClient.invalidateQueries(['admin-dashboard-overview']);
     } catch (error) {
       toast.error("Failed to update status.");
     }

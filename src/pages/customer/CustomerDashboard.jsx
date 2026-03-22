@@ -56,7 +56,8 @@ const CustomerDashboard = () => {
       const response = await api.get('analytics/dashboard/');
       return response.data;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0, // Always stale to ensure fresh data on refetch
+    refetchInterval: 5000, // Refetch every 5 seconds for real-time status updates
   });
 
   const orders = dashboardData?.recent_orders || [];

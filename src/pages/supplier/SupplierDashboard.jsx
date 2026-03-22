@@ -38,7 +38,8 @@ const SupplierDashboard = () => {
       const res = await api.get('analytics/dashboard/');
       return res.data;
     },
-    staleTime: 30000, // 30 seconds for better "real-time" feel
+    staleTime: 0, 
+    refetchInterval: 10000, // Refetch every 10 seconds for real-time overview
     gcTime: 10 * 60 * 1000,
   });
 
@@ -57,7 +58,8 @@ const SupplierDashboard = () => {
       const res = await api.get('products/purchase-orders/supplier_orders/');
       return safeData(res.data);
     },
-    staleTime: 30000,
+    staleTime: 0,
+    refetchInterval: 5000, // Refetch every 5 seconds for real-time supply orders
   });
 
   const createProductMutation = useMutation({

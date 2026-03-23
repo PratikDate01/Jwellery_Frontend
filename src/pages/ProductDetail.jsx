@@ -148,7 +148,7 @@ const ProductDetail = () => {
             <div className="grid grid-cols-2 gap-4 mb-10">
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Metal Type</p>
-                <p className="text-sm font-medium text-slate-900">18K Solid Gold</p>
+                <p className="text-sm font-medium text-slate-900">{product.purity} {product.metal_type_display}</p>
               </div>
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Hallmark</p>

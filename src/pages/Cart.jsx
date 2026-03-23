@@ -107,15 +107,27 @@ const Cart = () => {
                       <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-6 border-t border-slate-50">
                         <div className="flex items-center bg-slate-50 rounded-2xl p-2 border border-slate-100">
                           <button 
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const currentQty = parseInt(item.quantity, 10) || 1;
+                              updateQuantity(item.id, currentQty - 1);
+                            }}
+                            className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
                           >
                             <Minus size={16} />
                           </button>
                           <span className="w-12 text-center text-sm font-bold text-slate-900">{item.quantity}</span>
                           <button 
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const currentQty = parseInt(item.quantity, 10) || 1;
+                              updateQuantity(item.id, currentQty + 1);
+                            }}
+                            className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
                           >
                             <Plus size={16} />
                           </button>

@@ -376,6 +376,19 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleDeleteOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to PERMANENTLY delete this order? This action cannot be undone.")) return;
+    
+    try {
+      await api.delete(`orders/${orderId}/delete_order/`);
+      toast.success("Order deleted successfully");
+      queryClient.invalidateQueries(['admin-orders']);
+      queryClient.invalidateQueries(['admin-dashboard-overview']);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to delete order");
+    }
+  };
+
   const handleEditProduct = (product) => {
     setEditingProduct(product);
     reset({
@@ -830,12 +843,21 @@ const AdminDashboard = () => {
                         </span>
                       </td>
                       <td className="p-4 text-right">
-                        <button 
-                          onClick={() => handleUpdateOrderStatus(order.id, order.status)}
-                          className="text-xs font-bold text-blue-600 hover:underline"
-                        >
-                          Update Status
-                        </button>
+                        <div className="flex items-center justify-end gap-3">
+                          <button 
+                            onClick={() => handleUpdateOrderStatus(order.id, order.status)}
+                            className="text-xs font-bold text-blue-600 hover:underline"
+                          >
+                            Update Status
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                            title="Delete Order"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

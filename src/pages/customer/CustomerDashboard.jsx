@@ -106,6 +106,19 @@ const CustomerDashboard = () => {
     updateProfileMutation.mutate(profileData);
   };
 
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+    
+    try {
+      await api.post(`orders/${orderId}/cancel/`, { reason: "Cancelled by customer" });
+      toast.success("Order cancelled successfully");
+      queryClient.invalidateQueries(['customer-dashboard']);
+      setSelectedOrderId(null);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to cancel order");
+    }
+  };
+
   return (
     <div className="bg-[#F8FAFC] min-h-screen py-12 text-slate-900 font-sans">
       <div className="container mx-auto px-4 max-w-6xl">
@@ -289,6 +302,15 @@ const CustomerDashboard = () => {
                        <h3 className="text-sm font-bold text-slate-900 mb-2 uppercase tracking-wider">Status</h3>
                        <p className="text-sm font-medium text-slate-700">{selectedOrder.status}</p>
                        <p className="text-xs text-slate-400 mt-1">Payment: {selectedOrder.payment_status}</p>
+                       
+                       {['PENDING_PAYMENT', 'PAYMENT_CONFIRMED', 'ORDER_CONFIRMED', 'PROCESSING'].includes(selectedOrder.status) && (
+                         <button 
+                           onClick={() => handleCancelOrder(selectedOrder.id)}
+                           className="mt-4 w-full py-2 bg-red-50 text-red-600 border border-red-100 rounded-xl text-xs font-bold hover:bg-red-100 transition-all flex items-center justify-center gap-2"
+                         >
+                           <X size={14} /> Cancel Order
+                         </button>
+                       )}
                     </div>
                   </div>
                 </div>

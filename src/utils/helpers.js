@@ -1,14 +1,20 @@
+export const DEFAULT_PRODUCT_IMAGE = 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800';
+
 /**
- * Formats a Cloudinary URL to ensure it uses HTTPS.
+ * Formats a Cloudinary URL to ensure it uses HTTPS and has a valid file extension.
  * @param {string} url - The URL to format.
  * @returns {string} - The formatted HTTPS URL.
  */
 export const normalizeImageUrl = (url) => {
-  if (!url) return '';
-  if (url.startsWith('http://')) {
-    return url.replace('http://', 'https://');
+  if (!url) return DEFAULT_PRODUCT_IMAGE;
+  let formattedUrl = url;
+  if (formattedUrl.startsWith('http://')) {
+    formattedUrl = formattedUrl.replace('http://', 'https://');
   }
-  return url;
+  if (formattedUrl.includes('cloudinary.com') && !/\.(jpg|jpeg|png|webp|gif|svg)$/i.test(formattedUrl.split('?')[0])) {
+    formattedUrl = `${formattedUrl}.jpg`;
+  }
+  return formattedUrl;
 };
 
 /**

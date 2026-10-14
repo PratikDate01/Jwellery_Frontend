@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Heart, ShoppingBag } from 'lucide-react';
 import api from '../../services/api';
 import { toast } from 'react-hot-toast';
-import { normalizeImageUrl } from '../../utils/helpers';
+import { normalizeImageUrl, DEFAULT_PRODUCT_IMAGE } from '../../utils/helpers';
 import { useQueryClient } from '@tanstack/react-query';
 
 const ProductCard = ({ product }) => {
@@ -23,7 +23,8 @@ const ProductCard = ({ product }) => {
         toast.error('Please login first');
         navigate('/login');
       } else {
-        toast.error('Failed to add to cart');
+        const errorMsg = error.response?.data?.error || 'Failed to add to cart';
+        toast.error(errorMsg);
       }
     }
   };
@@ -55,6 +56,7 @@ const ProductCard = ({ product }) => {
         <img 
           src={normalizeImageUrl(primaryImage)} 
           alt={product.name} 
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = DEFAULT_PRODUCT_IMAGE; }}
           className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
         />
         

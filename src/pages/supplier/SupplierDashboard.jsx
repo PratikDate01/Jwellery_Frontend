@@ -99,7 +99,16 @@ const SupplierDashboard = () => {
       refetch();
     },
     onError: (err) => {
-      const msg = err.response?.data?.detail || err.response?.data?.name?.[0] || 'Failed to create product';
+      const errData = err.response?.data;
+      let msg = 'Failed to create product';
+      if (errData?.detail) {
+        msg = errData.detail;
+      } else if (errData?.error) {
+        msg = errData.error;
+      } else if (typeof errData === 'object') {
+        const firstVal = Object.values(errData).flat()[0];
+        if (typeof firstVal === 'string') msg = firstVal;
+      }
       toast.error(msg);
     },
   });
@@ -142,13 +151,23 @@ const SupplierDashboard = () => {
       refetch();
     },
     onError: (err) => {
-      const msg = err.response?.data?.detail || 'Failed to update product';
+      const errData = err.response?.data;
+      let msg = 'Failed to update product';
+      if (errData?.detail) {
+        msg = errData.detail;
+      } else if (errData?.error) {
+        msg = errData.error;
+      } else if (typeof errData === 'object') {
+        const firstVal = Object.values(errData).flat()[0];
+        if (typeof firstVal === 'string') msg = firstVal;
+      }
       toast.error(msg);
     },
   });
 
   const analytics = supplierData?.stats;
   const inventory = supplierData?.inventory || [];
+  const isVerified = supplierData?.is_verified ?? true;
   
   // Robust loading state that stops on error
   const loading = isLoading && !queryError;
@@ -312,11 +331,23 @@ const SupplierDashboard = () => {
               </div>
               <div>
                 <p className="text-xs font-bold text-slate-900">{user?.name || user?.email}</p>
-                <p className="text-[10px] text-green-600 font-bold uppercase tracking-wider">Verified Vendor</p>
+                <p className={`text-[10px] font-bold uppercase tracking-wider ${isVerified ? 'text-green-600' : 'text-amber-600'}`}>
+                  {isVerified ? 'Verified Vendor' : 'Pending Verification'}
+                </p>
               </div>
             </div>
           </div>
         </header>
+
+        {!isVerified && (
+          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 text-amber-800">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600" />
+            <div className="text-sm">
+              <span className="font-bold">Account Pending Approval: </span>
+              Your supplier profile is currently awaiting administrator verification. Product submissions will be enabled once an admin approves your account.
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">

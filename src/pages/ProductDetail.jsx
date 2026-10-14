@@ -6,7 +6,7 @@ import { ShoppingBag, Heart, ShieldCheck, Truck, RotateCcw, Star, ChevronRight }
 import { toast } from 'react-hot-toast';
 import Loader from '../components/common/Loader';
 import BackButton from '../components/common/BackButton';
-import { normalizeImageUrl } from '../utils/helpers';
+import { normalizeImageUrl, DEFAULT_PRODUCT_IMAGE } from '../utils/helpers';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -38,7 +38,8 @@ const ProductDetail = () => {
         toast.error('Please login first');
         navigate('/login');
       } else {
-        toast.error('Failed to add to cart');
+        const errorMsg = error.response?.data?.error || 'Failed to add to cart';
+        toast.error(errorMsg);
       }
     }
   };
@@ -95,8 +96,9 @@ const ProductDetail = () => {
                 key={activeImg}
                 initial={{ opacity: 0, scale: 1.05 }}
                 animate={{ opacity: 1, scale: 1 }}
-                src={normalizeImageUrl(images[activeImg].image)}
+                src={normalizeImageUrl(images[activeImg]?.image)}
                 alt={product.name}
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = DEFAULT_PRODUCT_IMAGE; }}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
               <div className="absolute top-6 left-6 flex flex-col gap-3">
@@ -114,7 +116,12 @@ const ProductDetail = () => {
                   onClick={() => setActiveImg(idx)}
                   className={`w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden border-2 transition-all ${activeImg === idx ? 'border-gold-500 scale-95 shadow-lg' : 'border-slate-100 opacity-60 hover:opacity-100'}`}
                 >
-                  <img src={normalizeImageUrl(img.image)} alt="" className="w-full h-full object-cover" />
+                  <img 
+                    src={normalizeImageUrl(img.image)} 
+                    alt="" 
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = DEFAULT_PRODUCT_IMAGE; }}
+                    className="w-full h-full object-cover" 
+                  />
                 </button>
               ))}
             </div>

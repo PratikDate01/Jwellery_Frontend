@@ -19,7 +19,8 @@ const Login = () => {
     setLoading(true);
     setBackendError('');
     try {
-      const user = await login(data.email, data.password);
+      const email = data.email ? data.email.trim() : '';
+      const user = await login(email, data.password);
       toast.success(`Welcome back, ${user.name || 'User'}!`);
       
       let targetPath = `/dashboard/${user.role.toLowerCase()}`;

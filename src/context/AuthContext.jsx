@@ -40,24 +40,25 @@ export const AuthProvider = ({ children }) => {
         setUser(response.data);
       }
     } catch (err) {
-      const isTimeout = err.message.includes('timeout');
-      if (isTimeout) {
+      const is401 = err.response?.status === 401 || !localStorage.getItem('access_token');
+      const isTimeout = err.message?.includes('timeout');
+
+      if (is401) {
+        // Expired or invalid token: clean up session
+        logout();
+      } else if (isTimeout) {
         console.warn('Auth initialization info: Profile fetch timed out (Backend still warming up?)');
       } else {
         console.error('Auth initialization error:', err.message);
-      }
-      
-      // If we have a token, we assume authenticated for now to show the UI
-      if (accessToken) {
-        // We have a token but profile fetch failed/timed out
-        // Just set loading to false so the user can see the page
-        // Subsequent API calls will either work or trigger a 401
-        console.log('Proceeding with cached token despite profile fetch issue');
+        // If tokens were cleared by the interceptor, ensure user state is cleared
+        if (!localStorage.getItem('access_token')) {
+          logout();
+        }
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [logout]);
 
   useEffect(() => {
     initializeAuth();
@@ -74,10 +75,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       // Before login, do a quick health check or warmup if not already done
-      // This is helpful if the user tries to login immediately after landing
       const warmupPromise = warmupBackend();
+      const cleanEmail = (email || '').trim();
 
-      const response = await api.post('accounts/login/', { email, password }, {
+      const response = await api.post('accounts/login/', { email: cleanEmail, password }, {
         timeout: 180000, // Increased to 180s for extreme cold starts
       });
       
@@ -88,8 +89,6 @@ export const AuthProvider = ({ children }) => {
       
       setUser(userData);
       
-      // We don't strictly NEED to await the warmupPromise here as login succeeded,
-      // but it's good practice to ensure it's not dangling
       await warmupPromise;
       
       return userData;
